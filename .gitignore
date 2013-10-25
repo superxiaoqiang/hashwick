@@ -1,0 +1,21 @@
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+npm-debug.log
+node_modules
+
+config.*.json
+!config.example.json
+
+# patterns like 'flugelhorn/**/*.js' should work, but aren't (?)
+*.js
