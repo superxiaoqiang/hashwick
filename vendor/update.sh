@@ -18,3 +18,9 @@ mkdir -p when
 curl -L https://github.com/borisyankov/DefinitelyTyped/raw/master/when/when.d.ts > when/when.d.ts
 mkdir -p zepto
 curl -L https://github.com/borisyankov/DefinitelyTyped/raw/master/zepto/zepto.d.ts > zepto/zepto.d.ts
+
+
+mkdir -p bootstrap-stylus
+git clone https://github.com/Acquisio/bootstrap-stylus.git /tmp/bootstrap-stylus
+git --git-dir=/tmp/bootstrap-stylus/.git archive 3.0.0-r1 stylus | tar x -C bootstrap-stylus --strip=1
+rm -rf /tmp/bootstrap-stylus
