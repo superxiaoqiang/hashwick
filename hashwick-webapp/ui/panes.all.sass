@@ -1,0 +1,30 @@
+$pane-header-height: 2rem
+
+.pane
+  @extend %fill-container
+
+.pane-header
+  position: absolute
+  left: 0
+  top: 0
+  width: 100%
+  height: $pane-header-height
+
+.pane-title
+  @extend .text-muted
+
+.pane-body
+  position: absolute
+  left: 0
+  top: $pane-header-height
+  width: 100%
+  bottom: 0
+
+.view
+  @extend %fill-container
+
+@media (max-width: $screen-sm-max) and (orientation: landscape)
+  .pane-header
+    display: none
+  .pane-body
+    top: 0

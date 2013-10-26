@@ -1,0 +1,33 @@
+.chart
+  @extend %fill-container
+  .axis, .tickmark
+    stroke: $chart-border-color
+  .gridline-label
+    fill: $chart-border-color
+  .gridline
+    stroke: $chart-gridline-color
+  .candlestick
+    fill: none
+    &.up
+      stroke: $chart-green-line
+      &.filled
+        fill: $chart-green-fill
+    &.down
+      stroke: $chart-red-line
+      &.filled
+        fill: $chart-red-fill
+  .depth
+    fill: none
+    &.bids
+      stroke: $chart-green-line
+    &.asks
+      stroke: $chart-red-line
+.depth-chart-info-container
+  position: absolute
+.wall-infobox
+  position: absolute
+.wall-infoline
+  &.bid
+    stroke: $chart-green-line
+  &.ask
+    stroke: $chart-red-line
