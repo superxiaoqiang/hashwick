@@ -1,0 +1,20 @@
+#!/bin/sh
+
+on_exit() {
+    kill -INT $pids
+    wait $pids
+}
+trap on_exit EXIT
+
+run() {
+    $* &
+    pids="$pids $!"
+}
+
+
+export NODE_ENV=development
+
+run tsc -m commonjs --noImplicitAny -w daemon.ts
+run node_modules/.bin/nodemon daemon.js
+
+wait

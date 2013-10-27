@@ -1,5 +1,0 @@
-{
-    "debug": true,
-    "database": "postgres://user:pass@localhost/db",
-    "origin": "https://daemon.flugelhorn.hashwick.com"
-}
