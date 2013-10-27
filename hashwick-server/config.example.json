@@ -1,3 +1,4 @@
 {
-    "httpPort": 80
+    "httpPort": 80,
+    "flugelhornSocket": "//localhost:6571/"
 }

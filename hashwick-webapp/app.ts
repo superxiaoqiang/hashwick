@@ -15,9 +15,11 @@ import views = require("./views/views");
 if (0) views;
 
 
-function run() {
+function run(config: any) {
     new Logger("app").info("Starting\u2026");
     $("main").html("Loading&hellip;");
+
+    window["HashWick"].config = config;
 
     markets.init();
     frame.init();
