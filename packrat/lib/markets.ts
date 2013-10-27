@@ -1,5 +1,6 @@
 import _ = require("underscore");
 
+
 export class Market {
     constructor(public id: number, public exchangeName: string,
                 public left: string, public right: string) { }

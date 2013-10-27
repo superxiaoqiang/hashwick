@@ -9,7 +9,9 @@ import WebSocket = require("ws");
 
 import Logger = require("../lib/logger");
 import config = require("./config");
+import aggregate = require("./lib/aggregate");
 import Collector = require("./lib/collector");
+import markets = require("./lib/markets");
 import watchers = require("./lib/watchers/index");
 
 
@@ -18,16 +20,30 @@ logger.info("starting");
 
 
 var server = new WebSocket.Server({port: config.websocketPort});
-
-
 var db = new pg.Client(config.database);
 db.connect((err: any) => {
     if (err)
         throw err;
+    setupCollectors();
+    setupPeriodicJobs();
+    logger.info("started");
+});
 
+
+
+function setupCollectors() {
     _.each(watchers, watcher => {
         new Collector(watcher, db, server).start();
         watcher.start();
     });
-    logger.info("started");
-});
+}
+
+function setupPeriodicJobs() {
+    _.each(config.candleTimespans, (timespan: number) => {
+        setInterval(() => {
+            _.each(markets.all, market => {
+                aggregate.buildCandles(db, market, timespan);
+            })
+        }, timespan * 1000);
+    });
+}
