@@ -1,6 +1,7 @@
 import _ = require("underscore");
 import WebSocket = require("ws");
 
+import clingyWebSocket = require("../../../lib/clingyWebSocket");
 import Logger = require("../../../lib/logger");
 import Ticker = require("../../../lib/models/ticker");
 import Trade = require("../../../lib/models/trade");
@@ -14,7 +15,7 @@ var log = new Logger("packrat.lib.watchers.mtgox");
 class MtGoxWatcher extends Watcher {
     public exchangeName = "mtgox";
 
-    private socket: WebSocket;
+    private socket: clingyWebSocket.ClingyWebSocket;
     private handlers: { [channel: string]: (data: any) => void; } = {};
 
     constructor() {
@@ -24,18 +25,20 @@ class MtGoxWatcher extends Watcher {
     }
 
     public start() {
-        log.info("connecting");
-        this.socket = new WebSocket("wss://websocket.mtgox.com/mtgox", {origin: config.origin});
+        this.socket = new clingyWebSocket.ClingyWebSocket({
+            maker: () => new WebSocket("wss://websocket.mtgox.com/mtgox", {origin: config.origin}),
+            log: log,
+            timeout: 10 * 1000,
+        });
         this.socket.onopen = this.open.bind(this);
         this.socket.onmessage = this.message.bind(this);
     }
 
     private open() {
-        log.info("connected");
     }
 
-    private message(message: any) {
-        var data = JSON.parse(message.data);
+    private message(event: MessageEvent) {
+        var data = JSON.parse(event.data);
         var handler = this.handlers[data.channel];
         if (handler)
             handler.call(this, data);

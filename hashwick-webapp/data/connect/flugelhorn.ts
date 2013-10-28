@@ -1,3 +1,7 @@
+import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
+if (0) clingyWebSocket_;
+import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
+import ClingyWebSocketOptions = clingyWebSocket_.ClingyWebSocketOptions;
 import config = require("../../config");
 import logger_ = require("../../logger");
 if (0) logger_;
@@ -19,14 +23,17 @@ var statusIcon: StatusIcon;
 
 
 class Socketeer {
-    private socket: WebSocket;
+    private socket: ClingyWebSocket;
     private established: boolean;
     private handlers: { [channel: string]: (data: any) => void; } = {};
 
     public connect() {
         if (this.socket)
             return;
-        this.socket = new WebSocket(config.flugelhornSocket);
+        this.socket = new ClingyWebSocket({
+            maker: () => new WebSocket(config.flugelhornSocket),
+            log: log,
+        });
         this.socket.onopen = this.onConnect.bind(this);
         this.socket.onmessage = this.onMessage.bind(this);
         statusIcon = frame.addFooterIcon("Flugelhorn", "/static/icons/flugelhorn.ico");
@@ -57,7 +64,6 @@ class Socketeer {
     }
 
     private onConnect() {
-        log.debug("connected");
         this.established = true;
         _.each(this.handlers, (handler, channel) => {
             this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
