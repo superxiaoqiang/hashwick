@@ -28,10 +28,12 @@ class Flugelserver {
     }
 
     public broadcast(channel: string, data: any) {
-        var message = JSON.stringify(_.extend({channel: channel, data: data}));
+        var message = JSON.stringify({channel: channel, data: data});
         _.each(this.server.clients, (client: any) => {
             if (channel in client.subscriptions)
-                client.send(message);
+                try {
+                    client.send(message);
+                } catch (err) { /* WHO CARES! :D */ }
         });
     }
 }
