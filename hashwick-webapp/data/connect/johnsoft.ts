@@ -25,7 +25,7 @@ import PeriodicSnapshotDataFetcher = periodic_.PeriodicSnapshotDataFetcher;
 import PeriodicTemporalDataFetcher = periodic_.PeriodicTemporalDataFetcher;
 
 
-var apiURL = "//flugelhorn.hashwick.com/api";
+var apiURL = "//btcmarkets.johnsoft.com/api";
 var statusIcon: StatusIcon;
 
 export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
@@ -39,7 +39,7 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         super();
         this.marketID = marketID;
         this.interval = 60;
-        this.log = new Logger("data.connect.flugelhorn.LiveTickerDataSource:" + marketID);
+        this.log = new Logger("data.connect.johnsoft.LiveTickerDataSource:" + marketID);
         this.periodic = new PeriodicSnapshotDataFetcher(this.interval, this);
 
         makeStatusIcon();
@@ -116,7 +116,7 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         super();
         this.marketID = marketID;
         this.interval = 60;
-        this.log = new Logger("data.connect.flugelhorn.TradesDataSource:" + marketID);
+        this.log = new Logger("data.connect.johnsoft.TradesDataSource:" + marketID);
         this.items = new RangeCache<Date, Trade>(this.format.sortKey, this.fetchUncached);
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         this.periodic = new PeriodicTemporalDataFetcher(this.interval, this, 15 * 60);
@@ -166,11 +166,11 @@ export class TradesDataSource extends interfaces.TradesDataSource {
 
 interface TradesResponse {
     response: {
-        trades: FlugelhornTrade[];
+        trades: JohnsoftTrade[];
     };
 }
 
-interface FlugelhornTrade {
+interface JohnsoftTrade {
     timestamp: number;
     flags: number;
     price: string;
@@ -178,7 +178,7 @@ interface FlugelhornTrade {
     id_from_exchange: string;
 }
 
-function convertTrade(trade: FlugelhornTrade) {
+function convertTrade(trade: JohnsoftTrade) {
     return new Trade(time.timestampToDate(trade.timestamp), trade.flags,
         parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
 }
@@ -196,7 +196,7 @@ export class OHLCVDataSource extends interfaces.OHLCVDataSource {
         this.marketID = marketID;
         this.interval = 60;
         this.period = period;
-        this.log = new Logger("data.connect.flugelhorn.OHLCVDataSource:" + marketID + ":" + period);
+        this.log = new Logger("data.connect.johnsoft.OHLCVDataSource:" + marketID + ":" + period);
         this.items = new RangeCache<Date, Candle>(this.format.sortKey, this.fetchUncached);
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         this.periodic = new PeriodicTemporalDataFetcher(this.interval, this, 60 * 60);
@@ -295,7 +295,7 @@ export class LiveDepthDataSource extends interfaces.LiveDepthDataSource {
         super();
         this.marketID = marketID;
         this.interval = 60;
-        this.log = new Logger("data.connect.flugelhorn.LiveDepthDataSource:" + marketID);
+        this.log = new Logger("data.connect.johnsoft.LiveDepthDataSource:" + marketID);
         this.periodic = new PeriodicSnapshotDataFetcher(this.interval, this);
 
         makeStatusIcon();
@@ -358,5 +358,5 @@ function fixDepthData(depth: DepthData) {
 
 function makeStatusIcon() {
     if (!statusIcon)
-        statusIcon = frame.addFooterIcon("Flugelhorn AJAX polling", "/static/icons/flugelhorn.png");
+        statusIcon = frame.addFooterIcon("Johnsoft AJAX polling", "/static/icons/johnsoft.png");
 }
