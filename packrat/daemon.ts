@@ -5,13 +5,13 @@
 
 import _ = require("underscore");
 import pg = require("pg");
-import WebSocket = require("ws");
 
 import Logger = require("../lib/logger");
 import config = require("./config");
 import aggregate = require("./lib/aggregate");
 import Collector = require("./lib/collector");
 import markets = require("./lib/markets");
+import Flugelserver = require("./lib/server");
 import watchers = require("./lib/watchers/index");
 
 
@@ -19,7 +19,9 @@ var logger = new Logger("packrat.daemon");
 logger.info("starting");
 
 
-var server = new WebSocket.Server({port: config.websocketPort});
+var server = new Flugelserver(config.websocketPort);
+
+
 var db = new pg.Client(config.database);
 db.connect((err: any) => {
     if (err)

@@ -2,6 +2,7 @@
 /// <reference path="../vendor/jquery/jquery.d.ts" />
 /// <reference path="../vendor/underscore/underscore.d.ts" />
 
+import config = require("./config");
 import logger_ = require("./logger");
 if (0) logger_;
 import Logger = logger_.Logger;
@@ -15,11 +16,11 @@ import views = require("./views/views");
 if (0) views;
 
 
-function run(config: any) {
+function run(conf: any) {
     new Logger("app").info("Starting\u2026");
     $("main").html("Loading&hellip;");
 
-    window["HashWick"].config = config;
+    _.extend(config, conf);
 
     markets.init();
     frame.init();

@@ -10,7 +10,7 @@ import Candle = models_.Candle;
 import DepthData = models_.DepthData;
 import Ticker = models_.Ticker;
 import Trade = models_.Trade;
-import johnsoft = require("./connect/johnsoft");
+import flugelhorn = require("./connect/flugelhorn");
 import mtgox = require("./connect/mtgox");
 import bitstamp = require("./connect/bitstamp");
 
@@ -113,19 +113,15 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
-                {source: new johnsoft.LiveTickerDataSource(1)},
-                {source: new mtgox.LiveTickerDataSource("d5f06780-30a8-4a48-a2f8-7ed181b4a13f")},
+                {source: new flugelhorn.LiveTickerDataSource("1")},
+                //{source: new mtgox.LiveTickerDataSource("d5f06780-30a8-4a48-a2f8-7ed181b4a13f")},
             ],
             tradesDataSources: [
-                {source: new johnsoft.TradesDataSource(1), role: "historical"},
-                {source: new mtgox.TradesDataSource("dbf1dee9-4f2e-4a08-8cb7-748919a71b21", "USD"), role: "realtime"},
+                //{source: new mtgox.TradesDataSource("dbf1dee9-4f2e-4a08-8cb7-748919a71b21", "USD"), role: "realtime"},
             ],
             ohlcvDataSources: [
-                {source: new johnsoft.OHLCVDataSource(1, 60), role: "historical"},
             ],
             liveDepthDataSources: [
-                {source: new johnsoft.LiveDepthDataSource(1)},
-                //{source: new mtgox.LiveDepthDataSource("24e67e0d-1cad-4cc0-9e7a-f8523ef460fe")},
             ],
         }],
     }, /*{
@@ -144,16 +140,12 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
-                {source: new johnsoft.LiveTickerDataSource(3)},
             ],
             tradesDataSources: [
-                {source: new johnsoft.TradesDataSource(3), role: "historical"},
             ],
             ohlcvDataSources: [
-                {source: new johnsoft.OHLCVDataSource(3, 60), role: "historical"},
             ],
             liveDepthDataSources: [
-                {source: new johnsoft.LiveDepthDataSource(3)},
             ],
         }],
     }, {
@@ -169,17 +161,13 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
-                {source: new johnsoft.LiveTickerDataSource(4)},
             ],
             tradesDataSources: [
-                {source: new johnsoft.TradesDataSource(4), role: "historical"},
                 {source: new bitstamp.TradesDataSource(), role: "realtime"},
             ],
             ohlcvDataSources: [
-                {source: new johnsoft.OHLCVDataSource(4, 60), role: "historical"},
             ],
             liveDepthDataSources: [
-                {source: new johnsoft.LiveDepthDataSource(4)},
             ],
         }],
     }, {
@@ -195,16 +183,12 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
-                {source: new johnsoft.LiveTickerDataSource(5)},
             ],
             tradesDataSources: [
-                {source: new johnsoft.TradesDataSource(5), role: "historical"},
             ],
             ohlcvDataSources: [
-                {source: new johnsoft.OHLCVDataSource(5, 60), role: "historical"},
             ],
             liveDepthDataSources: [
-                {source: new johnsoft.LiveDepthDataSource(5)},
             ],
         }],
     }], makeExchange), xchg => xchg.id);
