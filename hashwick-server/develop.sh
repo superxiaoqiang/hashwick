@@ -1,16 +1,25 @@
 #!/bin/sh
 
 on_exit() {
-    kill -INT $tsc1_pid
-    kill -INT $tsc2_pid
+    kill -INT $pids
+    wait $pids
 }
 trap on_exit EXIT
 
-tsc -m commonjs --noImplicitAny -w server.ts &
-tsc1_pid=$!
+run() {
+    $* &
+    pids="$pids $!"
+}
 
-tsc -m commonjs --noImplicitAny -w ../hashwick-webapp/app.ts &
-tsc2_pid=$!
 
+export NODE_ENV=development
+
+run tsc -m commonjs --noImplicitAny -w server.ts
+run tsc -m commonjs --noImplicitAny -w ../hashwick-webapp/app.ts
 # sudo is there so it can listen on port 80
-NODE_ENV=development sudo node_modules/.bin/nodemon --debug server.js
+run sudo ../node_modules/.bin/supervisor -w .. -n exit server.js
+
+# to debug, add '--debug' to the node command and uncomment this line
+#run ../node_modules/.bin/node-inspector
+
+wait
