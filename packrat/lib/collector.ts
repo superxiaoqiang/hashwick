@@ -1,8 +1,6 @@
-import _ = require("underscore");
-
-import date = require("../../lib/date");
 import Ticker = require("../../lib/models/ticker");
 import Trade = require("../../lib/models/trade");
+import database = require("./database");
 import markets = require("./markets");
 import Flugelserver = require("./server");
 import Watcher = require("./watchers/watcher");
@@ -14,7 +12,7 @@ import Watcher = require("./watchers/watcher");
 class Collector {
     private latestTickers: { [marketID: number]: Ticker; } = {};
 
-    constructor(private watcher: Watcher, private db: any, private server: Flugelserver) { }
+    constructor(private watcher: Watcher, private db: database.Database, private server: Flugelserver) { }
 
     public start() {
         this.watcher.onTicker.attach(this.ticker.bind(this));
@@ -39,9 +37,7 @@ class Collector {
             ask: ticker.ask,
         });
 
-        this.db.query("INSERT INTO ticker" +
-                " (market_id, timestamp, last, bid, ask) VALUES ($1, $2, $3, $4, $5)",
-            [market.id, date.toFakeUTC(ticker.timestamp), ticker.last, ticker.bid, ticker.ask]);
+        this.db.insert_ticker(market.id, ticker);
     }
 
     private trade(trade: Trade) {
@@ -49,11 +45,10 @@ class Collector {
         if (!market)
             return;
 
-        this.db.query("SELECT * FROM trade WHERE market_id = $1 AND id_from_exchange = $2",
-                 [market.id, trade.id_from_exchange], (err: any, result: any) => {
+        this.db.get_trade_by_id_from_exchange(market.id, trade.id_from_exchange, (err: any, existingTrade) => {
             if (err)
                 throw err;
-            if (result.rows.length)
+            if (existingTrade)
                 return;
 
             this.server.broadcast("trade:" + market.id, {
@@ -64,11 +59,7 @@ class Collector {
                 id_from_exchange: trade.id_from_exchange,
             });
 
-            this.db.query("INSERT INTO trade" +
-                    " (market_id, timestamp, flags, price, amount, id_from_exchange)" +
-                    " VALUES ($1, $2, $3, $4, $5, $6)",
-                [market.id, date.toFakeUTC(trade.timestamp), trade.flags,
-                    trade.price, trade.amount, trade.id_from_exchange]);
+            this.db.insert_trade(market.id, trade);
         });
     }
 }

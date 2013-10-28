@@ -4,12 +4,12 @@
 /// <reference path="../vendor/ws/ws.d.ts" />
 
 import _ = require("underscore");
-import pg = require("pg");
 
 import Logger = require("../lib/logger");
 import config = require("./config");
 import aggregate = require("./lib/aggregate");
 import Collector = require("./lib/collector");
+import database = require("./lib/database");
 import markets = require("./lib/markets");
 import Flugelserver = require("./lib/server");
 import watchers = require("./lib/watchers/index");
@@ -22,25 +22,24 @@ logger.info("starting");
 var server = new Flugelserver(config.websocketPort);
 
 
-var db = new pg.Client(config.database);
-db.connect((err: any) => {
+database.connect(config.database, (err, db) => {
     if (err)
         throw err;
-    setupCollectors();
-    setupPeriodicJobs();
+    setupCollectors(db, server);
+    setupPeriodicJobs(db);
     logger.info("started");
 });
 
 
 
-function setupCollectors() {
+function setupCollectors(db: database.Database, server: Flugelserver) {
     _.each(watchers, watcher => {
         new Collector(watcher, db, server).start();
         watcher.start();
     });
 }
 
-function setupPeriodicJobs() {
+function setupPeriodicJobs(db: database.Database) {
     _.each(config.candleTimespans, (timespan: number) => {
         setInterval(() => {
             _.each(markets.all, market => {
