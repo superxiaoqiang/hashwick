@@ -1,5 +1,6 @@
 import _ = require("underscore");
 
+import date = require("../../lib/date");
 import Ticker = require("../../lib/models/ticker");
 import Trade = require("../../lib/models/trade");
 import markets = require("./markets");
@@ -32,14 +33,15 @@ class Collector {
         this.latestTickers[market.id] = ticker;
 
         this.server.broadcast("ticker:" + market.id, {
-            timestamp: ticker.timestamp,
+            timestamp: ticker.timestamp.getTime() / 1000,
             last: ticker.last,
             bid: ticker.bid,
             ask: ticker.ask,
         });
 
-        this.db.query("INSERT INTO ticker (market_id, timestamp, last, bid, ask) VALUES ($1, $2, $3, $4, $5)",
-            [market.id, ticker.timestamp, ticker.last, ticker.bid, ticker.ask]);
+        this.db.query("INSERT INTO ticker" +
+                " (market_id, timestamp, last, bid, ask) VALUES ($1, $2, $3, $4, $5)",
+            [market.id, date.toFakeUTC(ticker.timestamp), ticker.last, ticker.bid, ticker.ask]);
     }
 
     private trade(trade: Trade) {
@@ -55,16 +57,18 @@ class Collector {
                 return;
 
             this.server.broadcast("trade:" + market.id, {
-                timestamp: trade.timestamp,
+                timestamp: trade.timestamp.getTime() / 1000,
                 flags: trade.flags,
                 price: trade.price,
                 amount: trade.amount,
                 id_from_exchange: trade.id_from_exchange,
             });
 
-            this.db.query("INSERT INTO trade (market_id, timestamp, flags, price, amount, id_from_exchange)" +
-                " VALUES ($1, $2, $3, $4, $5, $6)",
-                [market.id, trade.timestamp, trade.flags, trade.price, trade.amount, trade.id_from_exchange]);
+            this.db.query("INSERT INTO trade" +
+                    " (market_id, timestamp, flags, price, amount, id_from_exchange)" +
+                    " VALUES ($1, $2, $3, $4, $5, $6)",
+                [market.id, date.toFakeUTC(trade.timestamp), trade.flags,
+                    trade.price, trade.amount, trade.id_from_exchange]);
         });
     }
 }

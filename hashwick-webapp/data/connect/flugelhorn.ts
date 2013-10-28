@@ -110,7 +110,7 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         ticker.last = parseFloat(message.data.last);
         ticker.bid = parseFloat(message.data.bid);
         ticker.ask = parseFloat(message.data.ask);
-        var timestamp = message.data.timestamp;  // TODO: convert to Date object
+        var timestamp = new Date(message.data.timestamp * 1000);
         this.data = new SnapshotData(timestamp, ticker);
         this.gotData.emit();
     }
