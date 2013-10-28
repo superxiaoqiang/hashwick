@@ -17,10 +17,10 @@ export class TemporalData<T> {
 }
 
 
-export interface Ticker {
-    last: number;
-    bid: number;
-    ask: number;
+export class Ticker {
+    public last: number;
+    public bid: number;
+    public ask: number;
 }
 
 export class Trade {

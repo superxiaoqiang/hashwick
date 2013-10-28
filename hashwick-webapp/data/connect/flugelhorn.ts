@@ -105,7 +105,13 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         return this.data;
     }
 
-    private message(data: any) {
-        console.log(data);
+    private message(message: any) {
+        var ticker = new Ticker();
+        ticker.last = parseFloat(message.data.last);
+        ticker.bid = parseFloat(message.data.bid);
+        ticker.ask = parseFloat(message.data.ask);
+        var timestamp = message.data.timestamp;  // TODO: convert to Date object
+        this.data = new SnapshotData(timestamp, ticker);
+        this.gotData.emit();
     }
 }
