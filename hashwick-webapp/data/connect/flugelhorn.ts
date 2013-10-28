@@ -2,6 +2,9 @@ import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
 if (0) clingyWebSocket_;
 import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
 import ClingyWebSocketOptions = clingyWebSocket_.ClingyWebSocketOptions;
+import rangeCache_ = require("../../../lib/rangeCache");
+if (0) rangeCache_;
+import RangeCache = rangeCache_.RangeCache;
 import config = require("../../config");
 import logger_ = require("../../logger");
 if (0) logger_;
@@ -15,7 +18,9 @@ import interfaces = require("../interfaces");
 import models_ = require("../models");
 if (0) models_;
 import SnapshotData = models_.SnapshotData;
+import TemporalData = models_.TemporalData;
 import Ticker = models_.Ticker;
+import Trade = models_.Trade;
 
 
 var log = new Logger("data.connect.flugelhorn");
@@ -119,5 +124,46 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         var timestamp = new Date(message.data.timestamp * 1000);
         this.data = new SnapshotData(timestamp, ticker);
         this.gotData.emit();
+    }
+}
+
+
+export class TradesDataSource extends interfaces.TradesDataSource {
+    private marketID: string;
+    private log: Logger;
+    private realtime: number;
+    private items: RangeCache<Date, Trade>;
+
+    constructor(marketID: string) {
+        super();
+        this.marketID = marketID;
+        this.log = new Logger("data.connect.flugelhorn.trades:" + marketID);
+        this.realtime = 0;
+        this.items = new RangeCache<Date, Trade>(this.format.sortKey, () => $.Deferred().resolve());
+        this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
+    }
+
+    public wantRealtime() {
+        if (!this.realtime++)
+            socketeer.subscribe("trades:" + this.marketID, this.message.bind(this));
+        this.log.trace("realtime up to " + this.realtime);
+    }
+
+    public unwantRealtime() {
+        if (!-- this.realtime)
+            socketeer.unsubscribe("trades:" + this.marketID);
+        this.log.trace("realtime down to " + this.realtime);
+    }
+
+    public getFromMemory(earliest: Date, latest: Date) {
+        return new TemporalData(this.items.getFromMemory(earliest, latest));
+    }
+
+    private message(message: any) {
+        var trades = _.map(message.data.trades, (trade: any) => {
+            return new Trade(new Date(trade.timestamp * 1000), trade.flags,
+                parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
+        });
+        this.items.mergeItems(trades);
     }
 }

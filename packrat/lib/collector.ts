@@ -51,12 +51,14 @@ class Collector {
             if (existingTrade)
                 return;
 
-            this.server.broadcast("trade:" + market.id, {
-                timestamp: trade.timestamp.getTime() / 1000,
-                flags: trade.flags,
-                price: trade.price,
-                amount: trade.amount,
-                id_from_exchange: trade.id_from_exchange,
+            this.server.broadcast("trades:" + market.id, {
+                trades: [{
+                    timestamp: trade.timestamp.getTime() / 1000,
+                    flags: trade.flags,
+                    price: trade.price,
+                    amount: trade.amount,
+                    id_from_exchange: trade.id_from_exchange,
+                }],
             });
 
             this.db.insert_trade(market.id, trade);

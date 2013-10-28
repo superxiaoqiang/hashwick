@@ -117,6 +117,7 @@ export function init() {
                 //{source: new mtgox.LiveTickerDataSource("d5f06780-30a8-4a48-a2f8-7ed181b4a13f")},
             ],
             tradesDataSources: [
+                {source: new flugelhorn.TradesDataSource("1"), role: "realtime"},
                 //{source: new mtgox.TradesDataSource("dbf1dee9-4f2e-4a08-8cb7-748919a71b21", "USD"), role: "realtime"},
             ],
             ohlcvDataSources: [
