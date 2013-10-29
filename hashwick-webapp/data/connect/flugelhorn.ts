@@ -29,7 +29,7 @@ var statusIcon: StatusIcon;
 
 class Socketeer {
     private socket: ClingyWebSocket;
-    private handlers: { [channel: string]: (data: any) => void; } = {};
+    public handlers: { [channel: string]: (data: any) => void; } = {};
 
     public connect() {
         if (this.socket)
@@ -49,19 +49,15 @@ class Socketeer {
         frame.removeFooterIcon(statusIcon);
     }
 
-    public subscribe(channel: string, handler: (data: any) => void) {
+    public subscribe(channel: string) {
         this.connect();
         log.debug("subscribing to " + channel);
-        this.handlers[channel] = handler;
         this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
     }
 
     public unsubscribe(channel: string) {
         log.debug("unsubscribing from " + channel);
         this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
-        delete this.handlers[channel];
-        if (!_.size(this.handlers))
-            this.disconnect();
     }
 
     private onConnect() {
@@ -93,11 +89,12 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.ticker:" + marketID);
         this.realtime = 0;
+        socketeer.handlers["ticker:" + this.marketID] = this.message.bind(this);
     }
 
     public wantRealtime() {
         if (!this.realtime++)
-            socketeer.subscribe("ticker:" + this.marketID, this.message.bind(this));
+            socketeer.subscribe("ticker:" + this.marketID);
         this.log.trace("realtime up to " + this.realtime);
     }
 
@@ -136,11 +133,12 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         this.realtime = 0;
         this.items = new RangeCache<Date, Trade>(this.format.sortKey, () => $.Deferred().resolve());
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
+        socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
     }
 
     public wantRealtime() {
         if (!this.realtime++)
-            socketeer.subscribe("trades:" + this.marketID, this.message.bind(this));
+            socketeer.subscribe("trades:" + this.marketID);
         this.log.trace("realtime up to " + this.realtime);
     }
 
