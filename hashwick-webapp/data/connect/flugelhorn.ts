@@ -29,7 +29,6 @@ var statusIcon: StatusIcon;
 
 class Socketeer {
     private socket: ClingyWebSocket;
-    private established: boolean;
     private handlers: { [channel: string]: (data: any) => void; } = {};
 
     public connect() {
@@ -48,31 +47,27 @@ class Socketeer {
         this.socket.close();
         this.socket = null;
         frame.removeFooterIcon(statusIcon);
-        this.established = false;
     }
 
     public subscribe(channel: string, handler: (data: any) => void) {
         this.connect();
         log.debug("subscribing to " + channel);
         this.handlers[channel] = handler;
-        if (this.established)
-            this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
+        this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
     }
 
     public unsubscribe(channel: string) {
         log.debug("unsubscribing from " + channel);
-        if (this.established)
-            this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
+        this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
         delete this.handlers[channel];
         if (!_.size(this.handlers))
             this.disconnect();
     }
 
     private onConnect() {
-        this.established = true;
-        _.each(this.handlers, (handler, channel) => {
+        for (var channel in this.handlers) {
             this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
-        });
+        }
     }
 
     private onMessage(event: MessageEvent) {
