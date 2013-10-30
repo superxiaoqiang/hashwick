@@ -2,6 +2,7 @@ import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
 if (0) clingyWebSocket_;
 import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
 import ClingyWebSocketOptions = clingyWebSocket_.ClingyWebSocketOptions;
+import PendingPromise = require("../../../lib/pendingPromise");
 import rangeCache_ = require("../../../lib/rangeCache");
 if (0) rangeCache_;
 import RangeCache = rangeCache_.RangeCache;
@@ -23,23 +24,24 @@ import Ticker = models_.Ticker;
 import Trade = models_.Trade;
 
 
-var log = new Logger("data.connect.flugelhorn");
 var statusIcon: StatusIcon;
 
 
 class Socketeer {
     private socket: ClingyWebSocket;
     public handlers: { [channel: string]: (data: any) => void; } = {};
+    private log: Logger;
 
     public connect() {
         if (this.socket)
             return;
         this.socket = new ClingyWebSocket({
             maker: () => new WebSocket(config.flugelhornSocket),
-            log: log,
+            log: this.log,
         });
         this.socket.onopen = this.onConnect.bind(this);
         this.socket.onmessage = this.onMessage.bind(this);
+        this.log = new Logger("data.connect.flugelhorn.socketeer");
         statusIcon = frame.addFooterIcon("Flugelhorn", "/static/icons/flugelhorn.ico");
     }
 
@@ -55,12 +57,12 @@ class Socketeer {
 
     public subscribe(channel: string) {
         this.connect();
-        log.debug("subscribing to " + channel);
+        this.log.debug("subscribing to " + channel);
         this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
     }
 
     public unsubscribe(channel: string) {
-        log.debug("unsubscribing from " + channel);
+        this.log.debug("unsubscribing from " + channel);
         this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
     }
 
@@ -82,16 +84,31 @@ class Socketeer {
 var socketeer = new Socketeer();
 
 
-export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
+function decodeTicker(t: any) {
+    var ticker = new Ticker();
+    ticker.last = parseFloat(t.last);
+    ticker.bid = parseFloat(t.bid);
+    ticker.ask = parseFloat(t.ask);
+    return ticker;
+}
+
+function decodeTrade(trade: any) {
+    return new Trade(new Date(trade.timestamp * 1000), trade.flags,
+        parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
+}
+
+
+export class LiveTicker extends interfaces.LiveTickerDataSource {
     private marketID: string;
     private log: Logger;
     private realtime: number;
     private data: SnapshotData<Ticker>;
+    private pendingPromise = new PendingPromise<void>();
 
     constructor(marketID: string) {
         super();
         this.marketID = marketID;
-        this.log = new Logger("data.connect.flugelhorn.ticker:" + marketID);
+        this.log = new Logger("data.connect.flugelhorn.LiveTicker:" + marketID);
         this.realtime = 0;
         socketeer.handlers["ticker:" + this.marketID] = this.message.bind(this);
     }
@@ -108,33 +125,35 @@ export class LiveTickerDataSource extends interfaces.LiveTickerDataSource {
         this.log.trace("realtime down to " + this.realtime);
     }
 
+    public prefetch() {
+        socketeer.send("getTicker", {marketID: this.marketID});
+        return this.pendingPromise.promise();
+    }
+
     public getFromMemory() {
         return this.data;
     }
 
     private message(message: any) {
-        var ticker = new Ticker();
-        ticker.last = parseFloat(message.data.last);
-        ticker.bid = parseFloat(message.data.bid);
-        ticker.ask = parseFloat(message.data.ask);
         var timestamp = new Date(message.data.timestamp * 1000);
+        var ticker = decodeTicker(message.data);
         this.data = new SnapshotData(timestamp, ticker);
         this.gotData.emit();
+        this.pendingPromise.resolve();
     }
 }
 
 
-export class TradesDataSource extends interfaces.TradesDataSource {
+export class RealtimeTrades extends interfaces.TradesDataSource {
     private marketID: string;
     private log: Logger;
     private realtime: number;
     private items: RangeCache<Date, Trade>;
-    private pendingPromise: JQueryDeferred<void>;
 
     constructor(marketID: string) {
         super();
         this.marketID = marketID;
-        this.log = new Logger("data.connect.flugelhorn.trades:" + marketID);
+        this.log = new Logger("data.connect.flugelhorn.RealtimeTrades:" + marketID);
         this.realtime = 0;
         this.items = new RangeCache<Date, Trade>(this.format.sortKey, () => $.Deferred().resolve());
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
@@ -153,10 +172,37 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         this.log.trace("realtime down to " + this.realtime);
     }
 
+    public getFromMemory(earliest: Date, latest: Date) {
+        return new TemporalData(this.items.getFromMemory(earliest, latest));
+    }
+
+    private message(message: any) {
+        var trades = _.map(message.data.trades, decodeTrade);
+        this.items.mergeItems(trades);
+    }
+}
+
+
+export class HistoricalTrades extends interfaces.TradesDataSource {
+    private marketID: string;
+    private log: Logger;
+    private items: RangeCache<Date, Trade>;
+    private pendingPromise = new PendingPromise<void>();
+
+    constructor(marketID: string) {
+        super();
+        this.marketID = marketID;
+        this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
+        this.items = new RangeCache<Date, Trade>(this.format.sortKey, this.prefetch.bind(this));
+        this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
+        socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
+    }
+
     public prefetch(earliest: Date, latest: Date) {
+        this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
         socketeer.send("getTrades",
             {marketID: this.marketID, earliest: earliest.getTime() / 1000, latest: latest.getTime() / 1000});
-        return this.pendingPromise || (this.pendingPromise = $.Deferred());
+        return this.pendingPromise.promise();
     }
 
     public getFromMemory(earliest: Date, latest: Date) {
@@ -164,14 +210,8 @@ export class TradesDataSource extends interfaces.TradesDataSource {
     }
 
     private message(message: any) {
-        var trades = _.map(message.data.trades, (trade: any) => {
-            return new Trade(new Date(trade.timestamp * 1000), trade.flags,
-                parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
-        });
+        var trades = _.map(message.data.trades, decodeTrade);
         this.items.mergeItems(trades);
-        if (this.pendingPromise) {
-            this.pendingPromise.resolve();
-            this.pendingPromise = null;
-        }
+        this.pendingPromise.resolve();
     }
 }
