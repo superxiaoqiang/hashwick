@@ -1,3 +1,4 @@
+import CandleBuilder = require("../../lib/calc/candleBuilder")
 import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
@@ -16,7 +17,6 @@ if (0) models_;
 import TemporalData = models_.TemporalData;
 import Candle = models_.Candle;
 import Trade = models_.Trade;
-import ohlcv = require("./ohlcv");
 import serialization = require("./serialization");
 
 
@@ -120,7 +120,11 @@ export class TradesToCandlesDataSource extends OHLCVDataSource {
 
     public getFromMemory(earliest: Date, latest: Date) {
         var trades = this.trades.getFromMemory(earliest, latest);
-        return new TemporalData<Candle>(ohlcv.makeCandlesFromTrades(trades.data, this.period));
+        var candles: Candle[] = [];
+        var builder = new CandleBuilder(this.period);
+        builder.onCandle = candles.push.bind(candles);
+        _.each(trades.data, builder.sendTrade.bind(builder));
+        return new TemporalData<Candle>(candles);
     }
 
     public prefetch(earliest: Date, latest: Date) {
