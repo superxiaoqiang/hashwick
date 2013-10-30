@@ -50,15 +50,15 @@ class MtGoxWatcher extends Watcher {
     }
 
     private ticker(data: any) {
-        var ticker = decodeTicker(data.ticker);
-        this.collector.streamTicker(ticker);
-        this.collector.storeTicker(ticker);
+        var stuff = decodeTicker(data.ticker);
+        this.collector.streamTicker(stuff.left, stuff.right, stuff.ticker);
+        this.collector.storeTicker(stuff.left, stuff.right, stuff.ticker);
     }
 
     private trade(data: any) {
-        var trade = decodeTrade(data.trade);
-        this.collector.streamTrade(trade);
-        this.collector.storeTrade(trade);
+        var stuff = decodeTrade(data.trade);
+        this.collector.streamTrades(stuff.left, stuff.right, [stuff.trade]);
+        this.collector.storeTrades(stuff.left, stuff.right, [stuff.trade]);
     }
 }
 
@@ -81,8 +81,11 @@ function decodeMoneyInt(value: string, currency: string) {
 }
 
 function decodeTicker(t: any) {
-    return new Ticker(t.item, t.low.currency, decodeTimestamp(t.now),
-        t.last.value, t.buy.value, t.sell.value);
+    return {
+        left: t.item,
+        right: t.low.currency,
+        ticker: new Ticker(decodeTimestamp(t.now), t.last.value, t.buy.value, t.sell.value),
+    };
 }
 
 function decodeTrade(t: any) {
@@ -105,7 +108,11 @@ function decodeTrade(t: any) {
     if (_.contains(properties, "market"))
         flags |= Trade.MARKET;
 
-    return new Trade(left, right, decodeTimestamp(t.tid), flags, price, amount, t.tid);
+    return {
+        left: left,
+        right: right,
+        trade: new Trade(decodeTimestamp(t.tid), flags, price, amount, t.tid),
+    };
 }
 
 

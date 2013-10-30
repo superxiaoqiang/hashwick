@@ -4,8 +4,8 @@ class Trade {
     public static LIMIT = 4;
     public static MARKET = 8;
 
-    constructor(public left: string, public right: string, public timestamp: Date, public flags: number,
-                public price: string, public amount: string, public id_from_exchange: string) { }
+    constructor(public timestamp: Date, public flags: number,
+        public price: string, public amount: string, public id_from_exchange: string) { }
 }
 
 export = Trade;

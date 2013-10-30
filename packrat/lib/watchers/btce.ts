@@ -41,9 +41,9 @@ class BTCEWatcher extends Watcher {
 
         request.on("response", httpx.bodyAmalgamator(str => {
             var data = JSON.parse(str);
-            var ticker = decodeTicker(left, right, data.ticker);
-            this.collector.streamTicker(ticker);
-            this.collector.storeTicker(ticker);
+            var ticker = decodeTicker(data.ticker);
+            this.collector.streamTicker(left, right, ticker);
+            this.collector.storeTicker(left, right, ticker);
             callback();
         }));
     }
@@ -54,8 +54,8 @@ function encodePair(left: string, right: string) {
     return left.toLowerCase() + "_" + right.toLowerCase();
 }
 
-function decodeTicker(left: string, right: string, t: any) {
-    return new Ticker(left, right, new Date(t.updated * 1000), t.last, t.sell, t.buy);
+function decodeTicker(t: any) {
+    return new Ticker(new Date(t.updated * 1000), t.last, t.sell, t.buy);
 }
 
 
