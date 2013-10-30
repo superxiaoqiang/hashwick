@@ -142,6 +142,7 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
+                {source: new flugelhorn.LiveTicker("3")},
             ],
             tradesDataSources: [
             ],

@@ -8,6 +8,7 @@ export class Market {
 
 export var all = [
     new Market(1, "mtgox", "BTC", "USD"),
+    new Market(3, "btce", "BTC", "USD"),
 ];
 
 export function byID(id: number) {
