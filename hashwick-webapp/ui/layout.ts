@@ -68,7 +68,7 @@ export function showLayoutMenu(event: Event) {
 
 
 function showKnobs(context: DeserializationContext, knobs: SerializedLayoutKnob[]) {
-    var center = $("#js-app-header-center").empty();
+    var center = $("#app-header-center").empty();
     _.each(knobs, knob => {
         var element = knobTypes[knob.type].create(context, knob);
         center.append(element);

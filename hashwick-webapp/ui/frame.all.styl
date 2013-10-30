@@ -7,13 +7,15 @@ main
   top: $navbar-height
   bottom: $app-footer-height
 
-@media (max-width: $screen-sm-max) and (orientation: landscape)
+tmp = "(max-width: " + $screen-sm-max + ") and (orientation: landscape)"
+@media tmp
   body > footer
     display: none
   main
     bottom: 0
 
-@media (min-width: $grid-float-breakpoint)
+tmp = "(min-width: " + $grid-float-breakpoint + ")"
+@media tmp
   .navbar-center
     position: absolute
     width: 100%

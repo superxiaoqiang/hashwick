@@ -23,7 +23,8 @@ $pane-header-height = 2rem
 .view
   @extend $fill-container
 
-@media (max-width: $screen-sm-max) and (orientation: landscape)
+tmp = "(max-width: " + $screen-sm-max + ") and (orientation: landscape)"
+@media tmp
   .pane-header
     display: none
   .pane-body

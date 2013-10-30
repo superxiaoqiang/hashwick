@@ -12,7 +12,8 @@ $fill-container
 .modal
   overflow-y: auto
 
-@media screen and (min-width: $screen-tablet)
+tmp = "screen and (min-width: " + $screen-tablet + ")"
+@media tmp
   .modal-dialog
     width: auto
     max-width: 600px
