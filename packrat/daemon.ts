@@ -11,6 +11,7 @@ import aggregate = require("./lib/aggregate");
 import Collector = require("./lib/collector");
 import database = require("./lib/database");
 import markets = require("./lib/markets");
+import RequestHandler = require("./lib/requestHandler");
 import Flugelserver = require("./lib/server");
 import watchers = require("./lib/watchers/index");
 
@@ -27,6 +28,7 @@ database.connect(config.database, (err, db) => {
         throw err;
     setupCollectors(db, server);
     setupPeriodicJobs(db);
+    new RequestHandler(db, server);
     logger.info("started");
 });
 

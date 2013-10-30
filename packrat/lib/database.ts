@@ -43,6 +43,18 @@ export class Database {
             query.on("end", end);
     }
 
+    public stream_trades_from_to(market_id: number, start: Date, endDate: Date,
+            error: (err: any) => void, row: (row: Trade) => void, end?: (result: any) => void) {
+        var query = this.db.query("SELECT * FROM trade" +
+            " WHERE market_id = $1 AND timestamp >= $2 AND timestamp < $3", [market_id, start, endDate]);
+        if (error)
+            query.on("error", error);
+        if (row)
+            query.on("row", row);
+        if (end)
+            query.on("end", end);
+    }
+
     public get_latest_candle(market_id: number, timespan: number, callback: Callback<Candle>) {
         this.db.query("SELECT start FROM candle WHERE market_id = $1 AND timespan = $2 ORDER BY start DESC",
                 [market_id, timespan], (err: any, result: any) => {
