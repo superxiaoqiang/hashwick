@@ -123,7 +123,8 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
             var historicalLatest = this.getLatestTimestampFromSources(
                 _.where(this.infos, {role: "historical"}), earliest, latest);
             earliest = historicalLatest || earliest;
-            return promise.tolerantWhen<void>(_.map(_.where(this.infos, {role: "partial"}), info => {
+            var theRest = _.where(this.infos, {role: "partial"}).concat(_.where(this.infos, {role: "realtime"}));
+            return promise.tolerantWhen<void>(_.map(theRest, info => {
                 return info.source.prefetch(earliest, latest);
             }));
         });

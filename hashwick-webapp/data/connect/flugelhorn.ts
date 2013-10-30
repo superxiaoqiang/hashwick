@@ -49,6 +49,10 @@ class Socketeer {
         frame.removeFooterIcon(statusIcon);
     }
 
+    public send(channel: string, data: any) {
+        this.socket.send(JSON.stringify({command: "message", channel: channel, data: data}));
+    }
+
     public subscribe(channel: string) {
         this.connect();
         log.debug("subscribing to " + channel);
@@ -125,6 +129,7 @@ export class TradesDataSource extends interfaces.TradesDataSource {
     private log: Logger;
     private realtime: number;
     private items: RangeCache<Date, Trade>;
+    private pendingPromise: JQueryDeferred<void>;
 
     constructor(marketID: string) {
         super();
@@ -148,6 +153,12 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         this.log.trace("realtime down to " + this.realtime);
     }
 
+    public prefetch(earliest: Date, latest: Date) {
+        socketeer.send("getTrades",
+            {marketID: this.marketID, earliest: earliest.getTime() / 1000, latest: latest.getTime() / 1000});
+        return this.pendingPromise || (this.pendingPromise = $.Deferred());
+    }
+
     public getFromMemory(earliest: Date, latest: Date) {
         return new TemporalData(this.items.getFromMemory(earliest, latest));
     }
@@ -158,5 +169,9 @@ export class TradesDataSource extends interfaces.TradesDataSource {
                 parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
         });
         this.items.mergeItems(trades);
+        if (this.pendingPromise) {
+            this.pendingPromise.resolve();
+            this.pendingPromise = null;
+        }
     }
 }
