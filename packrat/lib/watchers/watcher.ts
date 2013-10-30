@@ -1,15 +1,10 @@
-import Signal = require("../../../lib/signal");
-import Ticker = require("../../../lib/models/ticker");
-import Trade = require("../../../lib/models/trade");
+import Collector = require("../collector");
 
 
 class Watcher {
     public exchangeName: string;
 
-    public onTicker = new Signal();
-    public onTrade = new Signal();
-
-    public start() { }
+    public start(collector: Collector) { }
 }
 
 export = Watcher;

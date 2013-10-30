@@ -36,8 +36,8 @@ database.connect(config.database, (err, db) => {
 
 function setupCollectors(db: database.Database, server: Flugelserver) {
     _.each(watchers, watcher => {
-        new Collector(watcher, db, server).start();
-        watcher.start();
+        var collector = new Collector(watcher.exchangeName, db, server);
+        watcher.start(collector);
     });
 }
 

@@ -6,6 +6,7 @@ import Logger = require("../../../lib/logger");
 import Ticker = require("../../../lib/models/ticker");
 import Trade = require("../../../lib/models/trade");
 import config = require("../../config");
+import Collector = require("../collector");
 import Watcher = require("./watcher");
 
 
@@ -15,16 +16,20 @@ var log = new Logger("packrat.lib.watchers.mtgox");
 class MtGoxWatcher extends Watcher {
     public exchangeName = "mtgox";
 
+    private collector: Collector;
     private socket: clingyWebSocket.ClingyWebSocket;
-    private handlers: { [channel: string]: (data: any) => void; } = {};
+    private handlers: { [channel: string]: (data: any) => void; };
 
     constructor() {
         super();
-        this.handlers["d5f06780-30a8-4a48-a2f8-7ed181b4a13f"] = this.ticker;  // ticker.BTCUSD
-        this.handlers["dbf1dee9-4f2e-4a08-8cb7-748919a71b21"] = this.trade;  // trade.BTC
+        this.handlers = {
+            "d5f06780-30a8-4a48-a2f8-7ed181b4a13f": this.ticker,  // ticker.BTCUSD
+            "dbf1dee9-4f2e-4a08-8cb7-748919a71b21": this.trade,  // trade.BTC
+        };
     }
 
-    public start() {
+    public start(collector: Collector) {
+        this.collector = collector;
         this.socket = new clingyWebSocket.ClingyWebSocket({
             maker: () => new WebSocket("wss://websocket.mtgox.com/mtgox", {origin: config.origin}),
             log: log,
@@ -46,12 +51,14 @@ class MtGoxWatcher extends Watcher {
 
     private ticker(data: any) {
         var ticker = decodeTicker(data.ticker);
-        this.onTicker.emit(ticker);
+        this.collector.streamTicker(ticker);
+        this.collector.storeTicker(ticker);
     }
 
     private trade(data: any) {
         var trade = decodeTrade(data.trade);
-        this.onTrade.emit(trade);
+        this.collector.streamTrade(trade);
+        this.collector.storeTrade(trade);
     }
 }
 
