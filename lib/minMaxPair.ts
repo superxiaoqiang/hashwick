@@ -3,8 +3,8 @@ class MinMaxPair<T> {
     public max: T;
 
     constructor(min?: T, max?: T) {
-        this.min = min;
-        this.max = max;
+        this.min = <any>min;  // casts are to work around compiler bug >_>
+        this.max = <any>max;
     }
 
     public static fromArray<T>(nums: T[]) {

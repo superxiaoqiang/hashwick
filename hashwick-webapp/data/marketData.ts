@@ -1,3 +1,4 @@
+import CandleResampler = require("../../lib/calc/candleResampler");
 import logger_ = require("../logger");
 if (0) logger_;
 import Logger = logger_.Logger;
@@ -26,7 +27,6 @@ import Candle = models_.Candle;
 import DepthData = models_.DepthData;
 import Ticker = models_.Ticker;
 import Trade = models_.Trade;
-import ohlcv = require("./ohlcv");
 import serialization = require("./serialization");
 
 
@@ -202,9 +202,14 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
     }
 
     public getFromMemory(earliest: Date, latest: Date): TemporalData<Candle> {
-        var ret = this.dataStack.getFromMemory(earliest, latest);
-        var data = ohlcv.resampleCandles(ret.data, this.period);
-        return new TemporalData<Candle>(data);
+        var data = this.dataStack.getFromMemory(earliest, latest);
+
+        var resampler = new CandleResampler(this.period);
+        var ret: Candle[] = [];
+        resampler.onCandle = ret.push.bind(ret);
+        _.each(data.data, resampler.feedCandle.bind(resampler));
+
+        return new TemporalData<Candle>(ret);
     }
 
     public prefetch(earliest: Date, latest: Date) {

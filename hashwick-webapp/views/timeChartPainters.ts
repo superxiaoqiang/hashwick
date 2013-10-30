@@ -99,10 +99,10 @@ class CandlestickPainter implements TemporalDataPainter<number> {
             var candle = candles[c];
             var bounds = candleXPosition(xScale(candle.start), xScale(candle.end));
             var x1 = bounds[0], x2 = bounds[1], x3 = bounds[2];
-            var y1 = Math.round(yScale(candle.buy_high > candle.sell_high ? candle.buy_high : candle.sell_high));
+            var y1 = Math.round(yScale(candle.high));
             var yopen = Math.round(yScale(candle.open));
             var yclose = Math.round(yScale(candle.close));
-            var y4 = Math.round(yScale(candle.buy_low < candle.sell_low ? candle.buy_low : candle.sell_low));
+            var y4 = Math.round(yScale(candle.low));
 
             if (candle.close >= candle.open) {
                 var fillClass = "hollow";
@@ -168,7 +168,7 @@ class VolumeBarsPainter implements TemporalDataPainter<number> {
     public predraw(xMin: Date, xMax: Date) {
         var candles = this.dataSource.getFromMemory(xMin, xMax).data;
         var max = _.reduce<Candle, number>(candles, (max, candle) => candle.volume > max ? candle.volume : max, 0);
-        var range = new MinMaxPair<number>(0, max);
+        var range: MinMaxPair<number> = new MinMaxPair(0, max);
         return {range: range, data: candles};
     }
 
