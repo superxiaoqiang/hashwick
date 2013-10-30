@@ -25,6 +25,7 @@ class BTCEWatcher extends Watcher {
         this.collector = collector;
         this.scheduler = new CallbackScheduler(5 * 1000);
         this.scheduler.schedule(this.ticker.bind(this, "BTC", "USD"), 10 * 1000);
+        this.scheduler.schedule(this.trades.bind(this, "BTC", "USD"), 10 * 1000);
     }
 
     private ticker(left: string, right: string, callback: () => void) {
@@ -47,6 +48,28 @@ class BTCEWatcher extends Watcher {
             callback();
         }));
     }
+
+    private trades(left: string, right: string, callback: () => void) {
+        var request = https.request({
+            host: "btc-e.com",
+            path: "/api/2/" + encodePair(left, right) + "/trades",
+        });
+        request.end();
+
+        request.on("error", () => {
+            log.error("error fetching trades");
+            callback();
+        });
+
+        request.on("response", httpx.bodyAmalgamator(str => {
+            var data = JSON.parse(str);
+            data.reverse();  // order from oldest to newest
+            var trades = _.map(data, decodeTrade);
+            this.collector.streamTrades(left, right, trades);
+            this.collector.storeTrades(left, right, trades);
+            callback();
+        }));
+    }
 }
 
 
@@ -56,6 +79,18 @@ function encodePair(left: string, right: string) {
 
 function decodeTicker(t: any) {
     return new Ticker(new Date(t.updated * 1000), t.last, t.sell, t.buy);
+}
+
+function decodeTrade(t: any) {
+    var flags = 0;
+    if (t.trade_type === "bid")
+        flags |= Trade.BUY;
+    else if (t.trade_type === "ask")
+        flags |= Trade.SELL;
+    else
+        log.warning("unknown trade_type " + t.trade_type)
+
+    return new Trade(new Date(t.date * 1000), flags, t.price, t.amount, t.tid);
 }
 
 

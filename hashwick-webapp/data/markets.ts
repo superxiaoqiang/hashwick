@@ -145,6 +145,8 @@ export function init() {
                 {source: new flugelhorn.LiveTicker("3")},
             ],
             tradesDataSources: [
+                {source: new flugelhorn.RealtimeTrades("3"), role: "realtime"},
+                {source: new flugelhorn.HistoricalTrades("3"), role: "historical"},
             ],
             ohlcvDataSources: [
             ],
