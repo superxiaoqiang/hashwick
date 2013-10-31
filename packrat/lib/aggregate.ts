@@ -20,7 +20,7 @@ export function buildCandles(db: Database, market: Market, timespan: number) {
         var start = candle ? candle.start : new Date(0);
         db.stream_trades_starting_at(market.id, start,
             (err: any) => { throw err; },
-            builder.sendTrade.bind(builder)
+            builder.feedTrade.bind(builder)
         );
 
         builder.onCandle = (candle: Candle) => {

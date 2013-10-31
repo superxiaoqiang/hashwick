@@ -123,7 +123,7 @@ export class TradesToCandlesDataSource extends OHLCVDataSource {
         var candles: Candle[] = [];
         var builder = new CandleBuilder(this.period);
         builder.onCandle = candles.push.bind(candles);
-        _.each(trades.data, builder.sendTrade.bind(builder));
+        _.each(trades.data, builder.feedTrade.bind(builder));
         return new TemporalData<Candle>(candles);
     }
 

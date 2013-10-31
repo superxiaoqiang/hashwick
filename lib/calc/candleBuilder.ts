@@ -12,7 +12,7 @@ class CandleBuilder {
 
     constructor(private timespan: number) { }
 
-    public sendTrade(trade: Trade) {
+    public feedTrade(trade: Trade) {
         var price = parseFloat(trade.price);
         var amount = parseFloat(trade.amount);
 
