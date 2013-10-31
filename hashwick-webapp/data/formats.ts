@@ -1,4 +1,4 @@
-import fun = require("../utils/fun");
+import compsci = require("../../lib/calc/compsci");
 import models_ = require("./models");
 if (0) models_;
 import TemporalData = models_.TemporalData;
@@ -18,21 +18,7 @@ export class TemporalDataFormat<T> implements DataFormat<T> {
     public uniqueKey(dataPoint: T): any { throw 0; }
 
     public combineDataSets(sets: TemporalData<T>[]): TemporalData<T> {
-        var endpoints = _.map(sets, set => set.data.length ? [set.data[0], set.data[set.data.length - 1]] : []);
-        var endKeys = _.map(_.flatten(endpoints, true), this.sortKey);
-        var endPairs = _.map(_.range(endKeys.length - 1), i => [endKeys[i], endKeys[i + 1]]);
-        var setsBetweenEachPair = _.map<any[], TemporalData<T>[]>(endPairs, fun.splat((a: any, b: any) => {
-            return _.filter(sets, set => {
-                return set.data.length &&
-                    this.sortKey(set.data[0]) <= a && this.sortKey(set.data[set.data.length - 1]) >= b;
-            });
-        }));
-        var data = _.flatten(_.map(setsBetweenEachPair, (localSets: TemporalData<T>[]) => {
-            if (localSets.length === 1)
-                return localSets[0].data;
-            var allDataPoints = _.flatten(_.map(localSets, s => s.data), true);
-            return _.sortBy(_.uniq(allDataPoints, this.uniqueKey), this.sortKey);
-        }));
+        var data = compsci.rangeMerge(_.map(sets, set => set.data), this.sortKey, this.uniqueKey);
         return new TemporalData<T>(data);
     }
 }
