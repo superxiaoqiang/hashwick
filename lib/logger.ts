@@ -2,7 +2,8 @@ class Logger {
     constructor(private scope: string) { }
 
     private emit(level: number, message: string) {
-        var text = "[" + this.scope + "] " + message;
+        var when = new Date().toISOString().replace("T", " ").replace("Z", "");
+        var text = when + " [" + this.scope + "] " + message;
         console.log(text);
     }
 
