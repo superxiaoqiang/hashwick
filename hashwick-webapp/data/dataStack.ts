@@ -1,5 +1,6 @@
 import promise = require("../utils/promise");
 import formats_ = require("./formats");
+if (0) formats_;
 import SnapshotDataFormat = formats_.SnapshotDataFormat;
 import TemporalDataFormat = formats_.TemporalDataFormat;
 import interfaces_ = require("./interfaces");
