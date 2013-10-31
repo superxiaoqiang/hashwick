@@ -208,6 +208,7 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
         var ret: Candle[] = [];
         resampler.onCandle = ret.push.bind(ret);
         _.each(data.data, resampler.feedCandle.bind(resampler));
+        resampler.sendIncompleteCandle();
 
         return new TemporalData<Candle>(ret);
     }

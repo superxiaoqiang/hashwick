@@ -28,6 +28,11 @@ class CandleResampler {
         this.onCandle(this.destCandle);
     }
 
+    public sendIncompleteCandle() {
+        if (this.destCandle)
+            this.sendCandle();
+    }
+
     public feedCandle(c: Candle) {
         if (!this.destCandle)
             this.resetCandle(c.start);

@@ -35,6 +35,11 @@ class CandleBuilder {
             this.addToSide("sell", price, amount);
     }
 
+    public sendIncompleteCandle() {
+        if (this.candle && this.candle.open !== undefined)
+            this.sendCandle();
+    }
+
     private addToSide(side: string, price: number, amount: number) {
         if (this.candle[side + "_open"] === undefined)
             this.candle[side + "_open"] = price;
