@@ -155,7 +155,8 @@ export class RealtimeTrades extends interfaces.TradesDataSource {
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.RealtimeTrades:" + marketID);
         this.realtime = 0;
-        this.items = new RangeCache<Date, Trade>(this.format.sortKey, () => $.Deferred().resolve());
+        this.items = new RangeCache<Date, Trade>(
+            this.format.sortKey, this.format.uniqueKey, () => $.Deferred().resolve());
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
     }
@@ -193,7 +194,8 @@ export class HistoricalTrades extends interfaces.TradesDataSource {
         super();
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
-        this.items = new RangeCache<Date, Trade>(this.format.sortKey, this.prefetch.bind(this));
+        this.items = new RangeCache<Date, Trade>(
+            this.format.sortKey, this.format.uniqueKey, this.prefetch.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
     }

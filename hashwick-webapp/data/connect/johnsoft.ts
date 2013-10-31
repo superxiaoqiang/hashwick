@@ -117,7 +117,8 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         this.marketID = marketID;
         this.interval = 60;
         this.log = new Logger("data.connect.johnsoft.TradesDataSource:" + marketID);
-        this.items = new RangeCache<Date, Trade>(this.format.sortKey, this.fetchUncached);
+        this.items = new RangeCache<Date, Trade>(
+            this.format.sortKey, this.format.uniqueKey, this.fetchUncached);
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         this.periodic = new PeriodicTemporalDataFetcher(this.interval, this, 15 * 60);
 
@@ -197,7 +198,8 @@ export class OHLCVDataSource extends interfaces.OHLCVDataSource {
         this.interval = 60;
         this.period = period;
         this.log = new Logger("data.connect.johnsoft.OHLCVDataSource:" + marketID + ":" + period);
-        this.items = new RangeCache<Date, Candle>(this.format.sortKey, this.fetchUncached);
+        this.items = new RangeCache<Date, Candle>(
+            this.format.sortKey, this.format.uniqueKey, this.fetchUncached);
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         this.periodic = new PeriodicTemporalDataFetcher(this.interval, this, 60 * 60);
 
