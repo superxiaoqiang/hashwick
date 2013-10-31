@@ -73,6 +73,7 @@ function showKnobs(context: DeserializationContext, knobs: SerializedLayoutKnob[
         var element = knobTypes[knob.type].create(context, knob);
         center.append(element);
     });
+    center.css("line-height", ($("#app-header-navbar").height() / knobs.length) + "px");
 }
 
 class MarketExchangeKnob {

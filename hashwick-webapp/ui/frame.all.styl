@@ -20,7 +20,8 @@ tmp = "(min-width: " + $grid-float-breakpoint + ")"
     position: absolute
     width: 100%
     text-align: center
-    line-height: $navbar-height / 2
+    &:not(:hover) .list-inline a
+      @extend .text-muted
 
 .app-footer
   position: absolute
