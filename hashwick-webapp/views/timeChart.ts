@@ -115,6 +115,15 @@ class ChartView implements View {
         var xMax = time.serverNow();
         var xMin = new Date(xMax.getTime() - this.timespan * 1000);
 
+        var domain = new MinMaxPair(xMin, xMax);
+        _.each(this.plots, plot => {
+            _.each(plot.series, series => {
+                domain = series.painter.adjustDomain(domain);
+            });
+        });
+        xMin = domain.min;
+        xMax = domain.max;
+
         $(this.svg.node()).empty();
 
         _.each(this.plots, plot => {
@@ -179,13 +188,6 @@ class ChartView implements View {
 
     private drawPlot(plot: Plot, xMin: Date, xMax: Date) {
         var canvas = d3.select(dom.createSVGElement("g"));
-
-        var domain = new MinMaxPair(xMin, xMax);
-        _.each(plot.series, series => {
-            domain = series.painter.adjustDomain(domain);
-        });
-        xMin = domain.min;
-        xMax = domain.max;
 
         var range = new MinMaxPair<number>();
         _.each(plot.series, series => {
