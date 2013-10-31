@@ -1,3 +1,4 @@
+import compsci = require("./calc/compsci");
 import MinMaxPair = require("./minMaxPair");
 import Signal = require("./signal");
 
@@ -6,9 +7,6 @@ export interface KeyFunc<T, V> { (value: V): T }
 export interface RangeGetter<T, V> { (earliest: T, latest: T): JQueryGenericPromise<V[]> }
 
 export class RangeCache<T, V> {
-    // optimization opportunities:
-    //  - use a binary search in getFromMemory
-    //  - when getting new items, only merge/filter new items instead of entire list each time
     private sortKey: KeyFunc<T, V>;
     private uniqueKey: KeyFunc<T, any>;
     private fetcher: RangeGetter<T, V>;
@@ -26,6 +24,7 @@ export class RangeCache<T, V> {
     }
 
     public getFromMemory(first: T, last: T) {
+        // this could use a binary search if it turns out performance isn't good enough
         var ret: V[] = [];
         for (var i = 0, ilen = this.items.length; i < ilen; ++i) {
             var item = this.items[i];
@@ -59,32 +58,12 @@ export class RangeCache<T, V> {
                 return null;
     }
 
-    // type signature is necessary due to compiler bug as of v0.9.1.1
-    public mergeItems: (newItems: V[]) => void = (newItems: V[]) => {
-        var merged = this.items.concat(newItems);
-        merged.sort((a, b) => <any>this.sortKey(a) - <any>this.sortKey(b));
-        this.items = this.filterDupKeys(merged);
+    public mergeItems(newItems: V[]) {
+        this.items = compsci.rangeMerge([this.items, newItems], this.sortKey, this.uniqueKey);
         if (this.items.length) {
             this.firstKey = this.sortKey(this.items[0]);
             this.lastKey = this.sortKey(this.items[this.items.length - 1]);
         }
         this.gotData.emit();
-    };
-
-    private filterDupKeys(items: V[]) {
-        // this assumes `items` is sorted by `this.key`
-        if (!items.length)
-            return items;
-        var ret = [items[0]];
-        var prevKey = this.uniqueKey(items[0]);
-        for (var i = 1, ilen = items.length; i < ilen; ++i) {
-            var item = items[i];
-            var key = this.uniqueKey(item);
-            if (key !== prevKey) {
-                prevKey = key;
-                ret.push(item);
-            }
-        }
-        return ret;
     }
 }
