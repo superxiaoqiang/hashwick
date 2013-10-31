@@ -12,6 +12,11 @@ class Logger {
     public info = this.emit.bind(this, 3);
     public warning = this.emit.bind(this, 4);
     public error = this.emit.bind(this, 5);
+
+    public attentionRequired(message: string) {
+        // TODO: send me an email
+        this.error(message);
+    }
 }
 
 export = Logger;

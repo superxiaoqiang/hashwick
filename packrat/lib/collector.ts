@@ -42,7 +42,17 @@ class Collector {
         this.db.insert_ticker(market.id, ticker);
     }
 
+    public getMostRecentStoredTrade(left: string, right: string, callback: (err: any, trade?: Trade) => void) {
+        var market = markets.get(this.exchangeName, left, right);
+        if (!market)
+            return callback(new Error("market not found"));
+
+        this.db.get_most_recent_trade(market.id, callback);
+    }
+
     public streamTrades(left: string, right: string, trades: Trade[]) {
+        if (!trades.length)
+            return;
         var market = markets.get(this.exchangeName, left, right);
         if (!market)
             return;
@@ -60,6 +70,8 @@ class Collector {
     }
 
     public storeTrades(left: string, right: string, trades: Trade[]) {
+        if (!trades.length)
+            return;
         var market = markets.get(this.exchangeName, left, right);
         if (!market)
             return;

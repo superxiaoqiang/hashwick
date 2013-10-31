@@ -1,7 +1,11 @@
+import https = require("https");
+
 import _ = require("underscore");
 import WebSocket = require("ws");
 
+import CallbackScheduler = require("../../../lib/callbackScheduler");
 import clingyWebSocket = require("../../../lib/clingyWebSocket");
+import httpx = require("../../../lib/httpx");
 import Logger = require("../../../lib/logger");
 import Ticker = require("../../../lib/models/ticker");
 import Trade = require("../../../lib/models/trade");
@@ -16,12 +20,28 @@ var log = new Logger("packrat.lib.watchers.mtgox");
 class MtGoxWatcher extends Watcher {
     public exchangeName = "mtgox";
 
+    private socketeer: Socketeer;
+    private poller: Poller;
+
+    constructor() {
+        super();
+        this.socketeer = new Socketeer(this);
+        this.poller = new Poller(this);
+    }
+
+    public start(collector: Collector) {
+        this.socketeer.start(collector);
+        this.poller.start(collector);
+    }
+}
+
+
+class Socketeer {
     private collector: Collector;
     private socket: clingyWebSocket.ClingyWebSocket;
     private handlers: { [channel: string]: (data: any) => void; };
 
-    constructor() {
-        super();
+    constructor(private watcher: MtGoxWatcher) {
         this.handlers = {
             "d5f06780-30a8-4a48-a2f8-7ed181b4a13f": this.ticker,  // ticker.BTCUSD
             "dbf1dee9-4f2e-4a08-8cb7-748919a71b21": this.trade,  // trade.BTC
@@ -62,6 +82,77 @@ class MtGoxWatcher extends Watcher {
     }
 }
 
+
+class Poller {
+    private collector: Collector;
+    private scheduler: CallbackScheduler;
+
+    constructor(private watcher: MtGoxWatcher) { }
+
+    public start(collector: Collector) {
+        this.collector = collector;
+        this.scheduler = new CallbackScheduler(5 * 1000);
+        this.scheduler.schedule(this.ticker.bind(this, "BTC", "USD"), 30 * 1000);
+        this.scheduler.schedule(this.trades.bind(this, "BTC", "USD"), 30 * 1000);
+    }
+
+    private errorHandler(message: string, callback: () => void) {
+        return () => {
+            log.error(message);
+            callback();
+        };
+    }
+
+    private ticker(left: string, right: string, callback: () => void) {
+        var request = https.request({
+            host: "data.mtgox.com",
+            path: "/api/2/" + encodePair(left, right) + "/money/ticker",
+        });
+        request.end();
+
+        request.on("error", this.errorHandler("error fetching ticker", callback));
+
+        request.on("response", httpx.bodyAmalgamator(str => {
+            var data = JSON.parse(str);
+            var stuff = decodeTicker(data.data);
+            this.collector.streamTicker(left, right, stuff.ticker);
+            this.collector.storeTicker(left, right, stuff.ticker);
+            callback();
+        }));
+    }
+
+    private trades(left: string, right: string, callback: () => void) {
+        this.collector.getMostRecentStoredTrade(left, right, (err, trade?) => {
+            if (err)
+                return this.errorHandler("error synchronizing with most recent trade", callback);
+
+            var path = "/api/2/" + encodePair(left, right) + "/money/trades/fetch";
+            if (trade) {
+                if (Date.now() - trade.timestamp.getTime() > 60 * 60 * 1000)
+                    log.attentionRequired("collector has been down since " + trade.timestamp);
+                else
+                    path += "?since=" + Math.floor(trade.timestamp.getTime() / 1000);
+            }
+            var request = https.request({host: "data.mtgox.com", path: path});
+            request.end();
+
+            request.on("error", this.errorHandler("error fetching trades", callback));
+
+            request.on("response", httpx.bodyAmalgamator(str => {
+                var data = JSON.parse(str);
+                var trades = _.map(data.data, (t: any) => decodeTrade(t).trade);
+                this.collector.streamTrades(left, right, trades);
+                this.collector.storeTrades(left, right, trades);
+                callback();
+            }));
+        });
+    }
+}
+
+
+function encodePair(left: string, right: string) {
+    return left + right;
+}
 
 function decodeTimestamp(timestamp: string) {
     return new Date(parseInt(timestamp) / 1000);

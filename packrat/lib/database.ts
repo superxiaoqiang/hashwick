@@ -1,7 +1,6 @@
 import _ = require("underscore");
 import pg = require("pg");
 
-import date = require("../../lib/date");
 import sql = require("../../lib/sql");
 import Candle = require("../../lib/models/candle");
 import Ticker = require("../../lib/models/ticker");
@@ -31,10 +30,17 @@ export class Database {
         });
     }
 
+    public get_most_recent_trade(market_id: number, callback: Callback<Trade>) {
+        this.db.query("SELECT * FROM trade WHERE market_id = $1 ORDER BY timestamp DESC, id DESC LIMIT 1",
+                [market_id], (err: any, result: any) => {
+            callback(err, err ? undefined : result.rows[0]);
+        });
+    }
+
     public stream_trades_starting_at(market_id: number, start: Date,
             error: (err: any) => void, row: (row: Trade) => void, end?: (result: any) => void) {
         var query = this.db.query("SELECT * FROM trade" +
-            " WHERE market_id = $1 AND timestamp >= $2", [market_id, start]);
+            " WHERE market_id = $1 AND timestamp >= $2 ORDER BY timestamp, id", [market_id, start]);
         if (error)
             query.on("error", error);
         if (row)
@@ -46,7 +52,8 @@ export class Database {
     public stream_trades_from_to(market_id: number, start: Date, endDate: Date,
             error: (err: any) => void, row: (row: Trade) => void, end?: (result: any) => void) {
         var query = this.db.query("SELECT * FROM trade" +
-            " WHERE market_id = $1 AND timestamp >= $2 AND timestamp < $3", [market_id, start, endDate]);
+                " WHERE market_id = $1 AND timestamp >= $2 AND timestamp < $3 ORDER BY timestamp, id",
+            [market_id, start, endDate]);
         if (error)
             query.on("error", error);
         if (row)
@@ -65,20 +72,19 @@ export class Database {
     public insert_ticker(market_id: number, ticker: Ticker) {
         this.db.query("INSERT INTO ticker" +
                 " (market_id, timestamp, last, bid, ask) VALUES ($1, $2, $3, $4, $5)",
-            [market_id, date.toFakeUTC(ticker.timestamp), ticker.last, ticker.bid, ticker.ask]);
+            [market_id, ticker.timestamp, ticker.last, ticker.bid, ticker.ask]);
     }
 
     public insert_trade(market_id: number, trade: Trade) {
         this.db.query("INSERT INTO trade" +
                 " (market_id, timestamp, flags, price, amount, id_from_exchange)" +
                 " VALUES ($1, $2, $3, $4, $5, $6)",
-            [market_id, date.toFakeUTC(trade.timestamp), trade.flags,
-                trade.price, trade.amount, trade.id_from_exchange]);
+            [market_id, trade.timestamp, trade.flags, trade.price, trade.amount, trade.id_from_exchange]);
     }
 
     public upsert_candle(market_id: number, candle: Candle) {
         sql.upsert(this.db, "candle",
-            {market_id: market_id, timespan: candle.timespan, start: date.toFakeUTC(candle.start)},
+            {market_id: market_id, timespan: candle.timespan, start: candle.start},
             _.pick(candle, "open", "close", "low", "high", "volume", "vwap", "count",
                 "buy_open", "sell_open", "buy_close", "sell_close", "buy_low", "sell_low", "buy_high", "sell_high",
                 "buy_volume", "sell_volume", "buy_vwap", "sell_vwap", "buy_count", "sell_count"));
