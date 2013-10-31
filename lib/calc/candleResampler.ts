@@ -26,6 +26,7 @@ class CandleResampler {
         if (this.destCandle.sell_volume)
             this.destCandle.sell_vwap = this.sell_opposingVolume / this.destCandle.sell_volume;
         this.onCandle(this.destCandle);
+        this.destCandle = null;
     }
 
     public sendIncompleteCandle() {
@@ -34,6 +35,8 @@ class CandleResampler {
     }
 
     public feedCandle(c: Candle) {
+        if (this.destCandle && c.start >= this.destCandle.end)
+            this.sendCandle();
         if (!this.destCandle)
             this.resetCandle(c.start);
 
@@ -76,10 +79,8 @@ class CandleResampler {
             this.sell_opposingVolume += c.sell_volume * c.sell_vwap;
         this.destCandle.sell_count += c.sell_count;
         
-        if (c.end >= this.destCandle.end) {
+        if (c.end >= this.destCandle.end)
             this.sendCandle();
-            this.destCandle = null;
-        }
     }
 }
 
