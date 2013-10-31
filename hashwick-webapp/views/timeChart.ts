@@ -1,3 +1,4 @@
+import fun = require("../../lib/fun");
 import MinMaxPair = require("../../lib/minMaxPair");
 import logger_ = require("../logger");
 if (0) logger_;
@@ -15,7 +16,6 @@ import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
-import fun = require("../utils/fun");
 import time = require("../utils/time");
 import dom = require("../widgets/dom");
 import serialization = require("./serialization");

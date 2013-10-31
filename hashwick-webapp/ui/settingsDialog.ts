@@ -1,10 +1,10 @@
+import fun = require("../../lib/fun");
 import user = require("../user");
 import markets = require("../data/markets");
 import ExchangeCredential = markets.ExchangeCredential;
 import accounts_ = require("../data/connect/accounts");
 if (0) accounts_;
 import AccountLivePortfolioDataSource = accounts_.AccountLivePortfolioDataSource;
-import fun = require("../utils/fun");
 import math = require("../utils/math");
 import strings = require("../utils/strings");
 import Dialog = require("../widgets/dialog");
