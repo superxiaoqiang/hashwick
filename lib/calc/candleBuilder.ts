@@ -48,25 +48,33 @@ class CandleBuilder {
         ++this.candle[side + "_count"];
     }
 
-    public checkBoundary(timestamp: Date) {
+    private checkBoundary(timestamp: Date) {
         if (this.candle) {
             var boundary = this.candle.start.getTime() + this.candle.timespan * 1000;
             if (timestamp.getTime() < boundary)
                 return;
 
-            if (this.candle.volume)
-                this.candle.vwap = this.opposingVolume / this.candle.volume;
-            if (this.candle.buy_volume)
-                this.candle.buy_vwap = this.buy_opposingVolume / this.candle.buy_volume;
-            if (this.candle.sell_volume)
-                this.candle.sell_vwap = this.sell_opposingVolume / this.candle.sell_volume;
-            this.onCandle(this.candle);
+            this.sendCandle();
         }
 
-        this.candle = new Candle(date.roundDown(timestamp, this.timespan), this.timespan);
+        this.resetCandle(date.roundDown(timestamp, this.timespan));
+    }
+
+    private resetCandle(start: Date) {
+        this.candle = new Candle(start, this.timespan);
         this.opposingVolume = 0;
         this.buy_opposingVolume = 0;
         this.sell_opposingVolume = 0;
+    }
+
+    private sendCandle() {
+        if (this.candle.volume)
+            this.candle.vwap = this.opposingVolume / this.candle.volume;
+        if (this.candle.buy_volume)
+            this.candle.buy_vwap = this.buy_opposingVolume / this.candle.buy_volume;
+        if (this.candle.sell_volume)
+            this.candle.sell_vwap = this.sell_opposingVolume / this.candle.sell_volume;
+        this.onCandle(this.candle);
     }
 }
 
