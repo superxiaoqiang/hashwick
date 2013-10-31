@@ -24,7 +24,7 @@ class CallbackScheduler {
         if (this.timeoutID)
             return;
         var next = this.getNextTask();
-        var delay = next.lastRun ? Date.now() - next.lastRun + next.interval : 0;
+        var delay = next.lastRun ? next.lastRun + next.interval - Date.now() : 0;
         delay = Math.max(delay, this.minDelay);
         this.timeoutID = setTimeout(this.runner.bind(this, next), delay);
     }
