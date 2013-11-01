@@ -3,6 +3,7 @@
     "author": "John Simon <john@johnsoft.com>",
     "private": true,
     "dependencies": {
+        "bluebird": "0.9.7-0",
         "express": "3.4.3",
         "jade": "0.35.0",
         "pg": "2.8.2",

@@ -1,3 +1,4 @@
+/// <reference path="../vendor/bluebird/bluebird.d.ts" />
 /// <reference path="../vendor/node/node.d.ts" />
 /// <reference path="../vendor/pg/pg.d.ts" />
 /// <reference path="../vendor/underscore/underscore.d.ts" />

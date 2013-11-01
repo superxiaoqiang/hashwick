@@ -1,19 +1,20 @@
 import _ = require("underscore");
+import Promise = require("bluebird");
 
 
-class CallbackScheduler {
+class PromiseScheduler {
     private tasks: Task[] = [];
     private timeoutID: number;
 
     constructor(private minDelay: number) { }
 
-    public schedule(func: Function, interval: number) {
+    public schedule(func: () => Promise<void>, interval: number) {
         this.tasks.push(new Task(func, interval));
         this.scheduleNext();
     }
 
     private runner(task: Task) {
-        task.func(() => {
+        task.func().then(() => {
             this.timeoutID = null;
             task.lastRun = Date.now();
             this.scheduleNext();
@@ -44,7 +45,7 @@ class CallbackScheduler {
 class Task {
     public lastRun: number;
 
-    constructor(public func: Function, public interval: number) { }
+    constructor(public func: () => Promise<void>, public interval: number) { }
 }
 
-export = CallbackScheduler;
+export = PromiseScheduler;

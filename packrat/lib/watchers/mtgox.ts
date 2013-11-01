@@ -1,12 +1,13 @@
 import https = require("https");
 
 import _ = require("underscore");
+import Promise = require("bluebird");
 import WebSocket = require("ws");
 
-import CallbackScheduler = require("../../../lib/callbackScheduler");
 import clingyWebSocket = require("../../../lib/clingyWebSocket");
 import httpx = require("../../../lib/httpx");
 import Logger = require("../../../lib/logger");
+import PromiseScheduler = require("../../../lib/promiseScheduler");
 import Ticker = require("../../../lib/models/ticker");
 import Trade = require("../../../lib/models/trade");
 import config = require("../../config");
@@ -85,13 +86,13 @@ class Socketeer {
 
 class Poller {
     private collector: Collector;
-    private scheduler: CallbackScheduler;
+    private scheduler: PromiseScheduler;
 
     constructor(private watcher: MtGoxWatcher) { }
 
     public start(collector: Collector) {
         this.collector = collector;
-        this.scheduler = new CallbackScheduler(5 * 1000);
+        this.scheduler = new PromiseScheduler(5 * 1000);
         this.scheduler.schedule(this.ticker.bind(this, "BTC", "USD"), 30 * 1000);
         this.scheduler.schedule(this.trades.bind(this, "BTC", "USD"), 30 * 1000);
     }
@@ -103,48 +104,52 @@ class Poller {
         };
     }
 
-    private ticker(left: string, right: string, callback: () => void) {
-        var request = https.request({
-            host: "data.mtgox.com",
-            path: "/api/2/" + encodePair(left, right) + "/money/ticker",
-        });
-        request.end();
-
-        request.on("error", this.errorHandler("error fetching ticker", callback));
-
-        request.on("response", httpx.bodyAmalgamator(str => {
-            var data = JSON.parse(str);
-            var stuff = decodeTicker(data.data);
-            this.collector.streamTicker(left, right, stuff.ticker);
-            this.collector.storeTicker(left, right, stuff.ticker);
-            callback();
-        }));
-    }
-
-    private trades(left: string, right: string, callback: () => void) {
-        this.collector.getMostRecentStoredTrade(left, right, (err, trade?) => {
-            if (err)
-                return this.errorHandler("error synchronizing with most recent trade", callback);
-
-            var path = "/api/2/" + encodePair(left, right) + "/money/trades/fetch";
-            if (trade) {
-                if (Date.now() - trade.timestamp.getTime() > 60 * 60 * 1000)
-                    log.attentionRequired("collector has been down since " + trade.timestamp);
-                else
-                    path += "?since=" + Math.floor(trade.timestamp.getTime() / 1000);
-            }
-            var request = https.request({host: "data.mtgox.com", path: path});
+    private ticker(left: string, right: string) {
+        return new Promise(resolve => {
+            var request = https.request({
+                host: "data.mtgox.com",
+                path: "/api/2/" + encodePair(left, right) + "/money/ticker",
+            });
             request.end();
 
-            request.on("error", this.errorHandler("error fetching trades", callback));
+            request.on("error", this.errorHandler("error fetching ticker", resolve));
 
             request.on("response", httpx.bodyAmalgamator(str => {
                 var data = JSON.parse(str);
-                var trades = _.map(data.data, (t: any) => decodeTrade(t).trade);
-                this.collector.streamTrades(left, right, trades);
-                this.collector.storeTrades(left, right, trades);
-                callback();
+                var stuff = decodeTicker(data.data);
+                this.collector.streamTicker(left, right, stuff.ticker);
+                this.collector.storeTicker(left, right, stuff.ticker);
+                resolve();
             }));
+        });
+    }
+
+    private trades(left: string, right: string) {
+        return new Promise(resolve => {
+            this.collector.getMostRecentStoredTrade(left, right, (err, trade?) => {
+                if (err)
+                    return this.errorHandler("error synchronizing with most recent trade", resolve);
+
+                var path = "/api/2/" + encodePair(left, right) + "/money/trades/fetch";
+                if (trade) {
+                    if (Date.now() - trade.timestamp.getTime() > 60 * 60 * 1000)
+                        log.attentionRequired("collector has been down since " + trade.timestamp);
+                    else
+                        path += "?since=" + Math.floor(trade.timestamp.getTime() / 1000);
+                }
+                var request = https.request({host: "data.mtgox.com", path: path});
+                request.end();
+
+                request.on("error", this.errorHandler("error fetching trades", resolve));
+
+                request.on("response", httpx.bodyAmalgamator(str => {
+                    var data = JSON.parse(str);
+                    var trades = _.map(data.data, (t: any) => decodeTrade(t).trade);
+                    this.collector.streamTrades(left, right, trades);
+                    this.collector.storeTrades(left, right, trades);
+                    resolve();
+                }));
+            });
         });
     }
 }
