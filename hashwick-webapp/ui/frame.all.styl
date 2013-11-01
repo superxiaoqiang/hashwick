@@ -20,8 +20,17 @@ tmp = "(min-width: " + $grid-float-breakpoint + ")"
     position: absolute
     width: 100%
     text-align: center
-    &:not(:hover) .list-inline a
-      @extend .text-muted
+    &:not(:hover) .list-inline li
+      a
+        color: lighten($navbar-default-color, 60%)
+    & .list-inline li
+      & a
+        color: lighten($link-color, 25%)
+      &.active a
+        color: $navbar-default-color
+        cursor: default
+        &:hover
+          text-decoration: none
 
 .app-footer
   position: absolute
