@@ -14,6 +14,7 @@ import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
+import eventLoop = require("../utils/eventLoop");
 import math = require("../utils/math");
 import strings = require("../utils/strings");
 import time = require("../utils/time");
@@ -44,7 +45,7 @@ class TradesScrollerView implements View {
     constructor(dataSource: Capsule<TradesDataSource>, uiContext: ViewUIContext) {
         this.numTrades = 50;
         this.dataSource = dataSource;
-        this.dataSource.item.gotData.attach(this.doLayout);
+        this.dataSource.item.gotData.attach(this.redraw);
         this.dataSource.item.wantRealtime();
         this.counting = new CountedRecentTemporalDataSource<Trade>(dataSource.item);
         this.counting.prefetch(this.numTrades);
@@ -64,8 +65,12 @@ class TradesScrollerView implements View {
 
     public destroy() {
         this.dataSource.item.unwantRealtime();
-        this.dataSource.item.gotData.detach(this.doLayout);
+        this.dataSource.item.gotData.detach(this.redraw);
     }
+
+    private redraw = () => {
+        eventLoop.setImmediateOnce(this.doLayout);
+    };
 
     public doLayout = () => {
         var trades = this.counting.getFromMemory(this.numTrades);

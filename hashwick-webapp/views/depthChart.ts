@@ -18,6 +18,7 @@ import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
+import eventLoop = require("../utils/eventLoop");
 import geometry_ = require("../utils/geometry");
 if (0) geometry_;
 import Rectangle = geometry_.Rectangle;
@@ -47,7 +48,7 @@ class DepthChartView implements View {
                               uiContext: ViewUIContext): DepthChartView {
         var ret = new DepthChartView(uiContext);
         ret.dataSource = <Capsule<LiveDepthDataSource>>context.unsealDataSource(structure.dataSource);
-        ret.dataSource.item.gotData.attach(ret.doLayout);
+        ret.dataSource.item.gotData.attach(ret.redraw);
         ret.dataSource.item.wantRealtime();
         ret.dataSource.item.prefetch();
         ret.spreadWidth = structure.spreadWidth || 0.1;
@@ -74,8 +75,12 @@ class DepthChartView implements View {
 
     public destroy() {
         this.dataSource.item.unwantRealtime();
-        this.dataSource.item.gotData.detach(this.doLayout);
+        this.dataSource.item.gotData.detach(this.redraw);
     }
+
+    private redraw = () => {
+        eventLoop.setImmediateOnce(this.doLayout);
+    };
 
     public doLayout = () => {
         this.log.trace("redrawing chart");

@@ -1,4 +1,3 @@
-import fun = require("../../lib/fun");
 import MinMaxPair = require("../../lib/minMaxPair");
 import logger_ = require("../logger");
 if (0) logger_;
@@ -16,6 +15,7 @@ import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
+import eventLoop = require("../utils/eventLoop");
 import time = require("../utils/time");
 import dom = require("../widgets/dom");
 import serialization = require("./serialization");
@@ -66,7 +66,7 @@ class ChartView implements View {
         _.each(this.plots, plot => {
             _.each(plot.series, series => {
                 series.dataSource.item.unwantRealtime();
-                series.dataSource.item.gotData.detach(this.doLayout);
+                series.dataSource.item.gotData.detach(this.redraw);
             })
         });
         this.plots = null;
@@ -77,7 +77,7 @@ class ChartView implements View {
         this.plots = _.map(plots, p => deserializePlot(context, p));
         _.each(this.plots, plot => {
             _.each(plot.series, series => {
-                series.dataSource.item.gotData.attach(this.doLayout);
+                series.dataSource.item.gotData.attach(this.redraw);
                 series.dataSource.item.wantRealtime();
                 var latest = time.serverNow();
                 var earliest = new Date(latest.getTime() - this.timespan * 1000);
@@ -108,7 +108,11 @@ class ChartView implements View {
         this.clearPlots();
     }
 
-    public doLayout = fun.throttle(1000, () => {
+    private redraw = () => {
+        eventLoop.setImmediateOnce(this.doLayout);
+    };
+
+    public doLayout = () => {
         this.log.trace("redrawing chart");
         this.calculatePlotSizes();
 
@@ -133,7 +137,7 @@ class ChartView implements View {
         });
 
         this.drawXAxis(xMin, xMax);
-    });
+    };
 
     private calculateAllPlotsSize() {
         var width = this.viewElement.width();
