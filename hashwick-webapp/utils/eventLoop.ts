@@ -16,8 +16,10 @@ export function setImmediateOnce(task: Task) {
 }
 
 function immediateRunner() {
-    var next: Task;
-    while (next = immediateOnce.shift())
-        next();
-    immediatePending = false;
+    var next = immediateOnce.shift();
+    next();
+    if (immediateOnce.length)
+        setTimeout(immediateRunner, 0);
+    else
+        immediatePending = false;
 }
