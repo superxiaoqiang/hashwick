@@ -14,24 +14,27 @@ tmp = "(max-width: " + $screen-sm-max + ") and (orientation: landscape)"
   main
     bottom: 0
 
-tmp = "(min-width: " + $grid-float-breakpoint + ")"
+.navbar-center
+  position: absolute
+  left: 0
+  width: 100%
+  text-align: center
+  &:not(:hover) .list-inline li
+    a
+      color: lighten($navbar-default-color, 60%)
+  & .list-inline li
+    & a
+      color: lighten($link-color, 25%)
+    &.active a
+      color: $navbar-default-color
+      cursor: default
+      &:hover
+        text-decoration: none
+
+tmp = "(max-width: " + $screen-xs-max + ")"
 @media tmp
   .navbar-center
-    position: absolute
-    left: 0
-    width: 100%
-    text-align: center
-    &:not(:hover) .list-inline li
-      a
-        color: lighten($navbar-default-color, 60%)
-    & .list-inline li
-      & a
-        color: lighten($link-color, 25%)
-      &.active a
-        color: $navbar-default-color
-        cursor: default
-        &:hover
-          text-decoration: none
+    display: none
 
 .app-footer
   position: absolute
