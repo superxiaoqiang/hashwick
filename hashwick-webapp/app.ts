@@ -17,7 +17,10 @@ if (0) views;
 
 
 function run(conf: any) {
-    new Logger("app").info("Starting\u2026");
+    var log = new Logger("app");
+    log.info("Starting\u2026");
+    logTimeInfo(log);
+
     $("main").html("Loading&hellip;");
 
     _.extend(config, conf);
@@ -28,6 +31,12 @@ function run(conf: any) {
     function afterInit() {
         layout.setLayout(null);
     }
+}
+
+function logTimeInfo(log: Logger) {
+    var now = new Date();
+    log.info("UTC time is " + now.toISOString());
+    log.info("local time is " + now.toString());
 }
 
 window["HashWick"] = {run: run};
