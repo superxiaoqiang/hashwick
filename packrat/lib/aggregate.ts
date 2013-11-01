@@ -11,10 +11,7 @@ import Market = markets_.Market;
 
 
 export function buildCandles(db: Database, market: Market, timespan: number) {
-    db.get_latest_candle(market.id, timespan, (err, candle) => {
-        if (err)
-            throw err;
-
+    db.get_latest_candle(market.id, timespan).then(candle => {
         var builder = new CandleBuilder(timespan);
 
         var start = candle ? candle.start : new Date(0);
@@ -24,7 +21,7 @@ export function buildCandles(db: Database, market: Market, timespan: number) {
         );
 
         builder.onCandle = (candle: Candle) => {
-            db.upsert_candle(market.id, candle);
+            db.upsert_candle(market.id, candle).done();
         };
-    });
+    }).done();
 }

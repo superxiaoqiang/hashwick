@@ -126,10 +126,7 @@ class Poller {
 
     private trades(left: string, right: string) {
         return new Promise(resolve => {
-            this.collector.getMostRecentStoredTrade(left, right, (err, trade?) => {
-                if (err)
-                    return this.errorHandler("error synchronizing with most recent trade", resolve);
-
+            this.collector.getMostRecentStoredTrade(left, right).then(trade => {
                 var path = "/api/2/" + encodePair(left, right) + "/money/trades/fetch";
                 if (trade) {
                     if (Date.now() - trade.timestamp.getTime() > 60 * 60 * 1000)
@@ -149,7 +146,9 @@ class Poller {
                     this.collector.storeTrades(left, right, trades);
                     resolve();
                 }));
-            });
+            }, () => {
+                this.errorHandler("error synchronizing with most recent locally-stored trade", resolve)();
+            }).done();
         });
     }
 }

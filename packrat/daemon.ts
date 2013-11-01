@@ -24,14 +24,12 @@ logger.info("starting");
 var server = new Flugelserver(config.websocketPort);
 
 
-database.connect(config.database, (err, db) => {
-    if (err)
-        throw err;
+database.connect(config.database).then(db => {
     setupCollectors(db, server);
     setupPeriodicJobs(db);
     new RequestHandler(db, server);
     logger.info("started");
-});
+}).done();
 
 
 

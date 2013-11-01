@@ -1,4 +1,5 @@
 import _ = require("underscore");
+import Promise = require("bluebird");
 
 import Ticker = require("../../lib/models/ticker");
 import Trade = require("../../lib/models/trade");
@@ -39,15 +40,15 @@ class Collector {
         if (!market)
             return;
 
-        this.db.insert_ticker(market.id, ticker);
+        this.db.insert_ticker(market.id, ticker).done();
     }
 
-    public getMostRecentStoredTrade(left: string, right: string, callback: (err: any, trade?: Trade) => void) {
+    public getMostRecentStoredTrade(left: string, right: string) {
         var market = markets.get(this.exchangeName, left, right);
         if (!market)
-            return callback(new Error("market not found"));
+            return Promise.rejected(new Error("market not found"));
 
-        this.db.get_most_recent_trade(market.id, callback);
+        return this.db.get_most_recent_trade(market.id);
     }
 
     public streamTrades(left: string, right: string, trades: Trade[]) {
@@ -76,19 +77,15 @@ class Collector {
         if (!market)
             return;
 
-        // yes, i am aware of how terrible making db calls in a loop is
+        // yes, i am aware of how terrible making db calls in a loop like this is
         _.each(trades, trade => {
-            var addIfNotExisting = (err: any, existingTrade: Trade) => {
-                if (err)
-                    throw err;
-                if (!existingTrade)
-                    this.db.insert_trade(market.id, trade);
-            };
-
-            if (trade.id_from_exchange)
-                this.db.get_trade_by_id_from_exchange(market.id, trade.id_from_exchange, addIfNotExisting);
-            else
+            if (!trade.id_from_exchange)
                 throw 0;  // TODO: instead search by timestamp/price/amount
+
+            this.db.get_trade_by_id_from_exchange(market.id, trade.id_from_exchange).then(existingTrade => {
+                if (!existingTrade)
+                    this.db.insert_trade(market.id, trade).done();
+            }).done();
         });
     }
 }
