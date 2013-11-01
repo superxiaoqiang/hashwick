@@ -30,7 +30,7 @@ class OHLCVDataFormat extends TemporalDataFormat<Candle> {
     }
 
     public sortKey(dataPoint: Candle) {
-        return dataPoint.start;
+        return dataPoint.start.getTime();
     }
 
     public uniqueKey(dataPoint: Candle) {
@@ -45,7 +45,7 @@ class TradesDataFormat extends TemporalDataFormat<Trade> {
     }
 
     public sortKey(dataPoint: Trade) {
-        return dataPoint.timestamp;
+        return dataPoint.timestamp.getTime();
     }
 
     public uniqueKey(dataPoint: Trade) {

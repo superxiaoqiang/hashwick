@@ -1,15 +1,15 @@
-export function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T) {
+function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T, rightInclusive: boolean) {
     // This should be replaced with a binary search for the endpoints
     // whenever I'm feeling less lazy
     return _.filter(xs, x => {
         var k = key(x);
-        return lowest <= k && k <= highest;
+        return lowest <= k && (rightInclusive ? k <= highest : k < highest);
     });
 }
 
 export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: (x: T) => any) {
     var endValues = _.map(arrays, a => a.length ? [a[0], a[a.length - 1]] : []);
-    var endKeys = _.map(_.flatten(endValues, true), sortKey);
+    var endKeys = _.uniq(_.map(_.flatten(endValues, true), sortKey));
     endKeys.sort();
     var endPairs = _.map(_.range(endKeys.length - 1), i => [endKeys[i], endKeys[i + 1]]);
 
@@ -22,7 +22,8 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
 
     return _.flatten(_.map(ranges, range => {
         var slices = _.map(range.arrays, (array: T[]) => {
-            return sortedSlice(array, sortKey, range.endpoints[0], range.endpoints[1]);
+            var rightInclusive = sortKey(array[array.length - 1]) === range.endpoints[1];
+            return sortedSlice(array, sortKey, range.endpoints[0], range.endpoints[1], rightInclusive);
         });
         if (slices.length === 1)
             return slices[0];
