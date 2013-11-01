@@ -15,7 +15,7 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
 
     var ranges = _.map(edgePairs, pair => {
         var localArrays = _.filter(arrays, a => {
-            return a.length && sortKey(a[0]) <= pair[0] && sortKey(a[a.length - 1]) >= pair[1];
+            return a.length && sortKey(a[0]) <= pair[1] && sortKey(a[a.length - 1]) >= pair[0];
         });
         return {edges: pair, arrays: localArrays};
     });
