@@ -16,9 +16,8 @@ export function setImmediateOnce(task: Task) {
 }
 
 function immediateRunner() {
+    var next: Task;
+    while (next = immediateOnce.shift())
+        next();
     immediatePending = false;
-    _.each(immediateOnce, task => {
-        task();
-    });
-    immediateOnce = [];
 }
