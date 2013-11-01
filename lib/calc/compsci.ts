@@ -1,3 +1,6 @@
+import fun = require("../fun");
+
+
 function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T, rightInclusive: boolean) {
     // This should be replaced with a binary search for the endpoints
     // whenever I'm feeling less lazy
@@ -27,6 +30,6 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
         });
         if (slices.length === 1)
             return slices[0];
-        return _.sortBy(_.uniq(_.flatten(slices, true), uniqueKey), sortKey);
+        return _.sortBy(fun.uniqViaObject(_.flatten(slices, true), uniqueKey), sortKey);
     }), true);
 }
