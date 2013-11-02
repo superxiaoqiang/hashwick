@@ -92,7 +92,7 @@ class TradesScrollerView implements View {
         this.table.find("td:first-child").each(function () {
             var timestamp = $(this).data("timestamp");
             var delta = (time.serverNow().getTime() - timestamp) / 1000;
-            this.textContent = strings.timeDiffVeryShort(delta) + " ago";
+            this.textContent = strings.timeDiffVeryShort(delta);
         });
     };
 }
