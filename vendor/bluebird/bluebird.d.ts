@@ -6,6 +6,19 @@ declare var Promise: {
 
     // Promisification
     promisify(nodeFunction: Function, receiver?: any): (...args: any[]) => Promise<any>;
+
+    // Collections
+    all<T>(values: Promise<T>[]): Promise<T[]>;
+    all<T>(values: Promise<T[]>): Promise<T[]>;
+    map<T, U>(values: Promise<T>[], mapper: (item: T, index: number, arrayLength: number) => Promise<U>): Promise<U[]>;
+    map<T, U>(values: Promise<T>[], mapper: (item: T, index: number, arrayLength: number) => U): Promise<U[]>;
+    map<T, U>(values: Promise<T[]>, mapper: (item: T, index: number, arrayLength: number) => Promise<U>): Promise<U[]>;
+    map<T, U>(values: Promise<T[]>, mapper: (item: T, index: number, arrayLength: number) => U): Promise<U[]>;
+    map<T, U>(values: T[], mapper: (item: T, index: number, arrayLength: number) => Promise<U>): Promise<U[]>;
+    map<T, U>(values: T[], mapper: (item: T, index: number, arrayLength: number) => U): Promise<U[]>;
+    filter<T>(values: Promise<T>[], filterer: (item: T, index: number, arrayLength: number) => boolean): Promise<T[]>;
+    filter<T>(values: Promise<T[]>, filterer: (item: T, index: number, arrayLength: number) => boolean): Promise<T[]>;
+    filter<T>(values: T[], filterer: (item: T, index: number, arrayLength: number) => boolean): Promise<T[]>;
 };
 
 interface Promise<T> {
@@ -17,6 +30,12 @@ interface Promise<T> {
 
     // Utility
     nodeify(callback: (err: any, result: T) => void): Promise<T>;
+
+    // Collections
+    all(): Promise<any[]>;
+    map<U>(mapper: (item: any, index: number, arrayLength: number) => Promise<U>): Promise<U[]>;
+    map<U>(mapper: (item: any, index: number, arrayLength: number) => U): Promise<U[]>;
+    filter(filterer: (item: any, index: number, arrayLength: number) => boolean): Promise<any[]>;
 }
 
 declare module "bluebird" {

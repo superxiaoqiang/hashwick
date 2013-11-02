@@ -1,10 +1,7 @@
 import _ = require("underscore");
 
+import Market = require("../../lib/models/market");
 
-export class Market {
-    constructor(public id: number, public exchangeName: string,
-                public left: string, public right: string) { }
-}
 
 export var all = [
     new Market(1, "mtgox", "BTC", "USD"),

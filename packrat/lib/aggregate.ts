@@ -2,12 +2,10 @@ import _ = require("underscore");
 
 import CandleBuilder = require("../../lib/calc/candleBuilder");
 import Candle = require("../../lib/models/candle");
+import Market = require("../../lib/models/market");
 import database_ = require("./database");
 if (0) database_;
 import Database = database_.Database;
-import markets_ = require("./markets");
-if (0) markets_;
-import Market = markets_.Market;
 
 
 export function buildCandles(db: Database, market: Market, timespan: number) {

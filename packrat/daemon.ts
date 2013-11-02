@@ -7,14 +7,16 @@
 import _ = require("underscore");
 
 import Logger = require("../lib/logger");
+import MtGox = require("../lib/exchanges/mtgox");
 import config = require("./config");
 import aggregate = require("./lib/aggregate");
-import Collector = require("./lib/collector");
+import bookkeeper_ = require("./lib/bookkeeper");
+if (0) bookkeeper_;
+import Bookkeeper = bookkeeper_.Bookkeeper;
 import database = require("./lib/database");
 import markets = require("./lib/markets");
 import RequestHandler = require("./lib/requestHandler");
 import Flugelserver = require("./lib/server");
-import watchers = require("./lib/watchers/index");
 
 
 var logger = new Logger("packrat.daemon");
@@ -25,7 +27,7 @@ var server = new Flugelserver(config.websocketPort);
 
 
 database.connect(config.database).then(db => {
-    setupCollectors(db, server);
+    setupBookkeeper(db, server);
     setupPeriodicJobs(db);
     new RequestHandler(db, server);
     logger.info("started");
@@ -33,10 +35,15 @@ database.connect(config.database).then(db => {
 
 
 
-function setupCollectors(db: database.Database, server: Flugelserver) {
-    _.each(watchers, watcher => {
-        var collector = new Collector(watcher.exchangeName, db, server);
-        watcher.start(collector);
+function setupBookkeeper(db: database.Database, server: Flugelserver) {
+    var bookkeeper = new Bookkeeper(db, server);
+    bookkeeper.add({
+        exchange: new MtGox(),
+        market: markets.get("mtgox", "BTC", "USD"),
+        pollSchedulingGroup: "mtgox",
+        pollSchedulingGroupMinDelay: 3 * 1000,
+        tickerPollRate: 30 * 1000,
+        tradesPollRate: 30 * 1000,
     });
 }
 
