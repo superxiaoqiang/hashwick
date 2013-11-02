@@ -30,6 +30,9 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
         });
         if (slices.length === 1)
             return slices[0];
-        return _.sortBy(fun.uniqViaObject(_.flatten(slices, true), uniqueKey), sortKey);
+
+        var ret = fun.uniqViaObject(_.flatten(slices, true), uniqueKey);
+        ret.sort((a, b) => sortKey(a) - sortKey(b));  // ~15% speedup over _.sort
+        return ret;
     }), true);
 }
