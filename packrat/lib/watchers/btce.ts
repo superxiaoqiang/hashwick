@@ -96,7 +96,7 @@ function decodeTrade(t: any) {
     else
         log.warning("unknown trade_type " + t.trade_type)
 
-    return new Trade(new Date(t.date * 1000), flags, t.price, t.amount, t.tid);
+    return new Trade(new Date(t.date * 1000), flags, t.price, t.amount, t.tid.toString());
 }
 
 
