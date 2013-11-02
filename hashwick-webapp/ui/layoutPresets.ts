@@ -78,7 +78,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
         },
     },
 }, {
-    name: "Compare",
+    name: "Compare 2",
     layout: {
         markets: [
             {key: "0", name: "1", item: {exchange: "1", left: "BTC", right: "USD"}},
@@ -90,79 +90,47 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
         ],
         dataSources: [
             {key: "ohlcv0", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
-            {key: "depth0", name: "depth", item: {type: "marketLiveDepth", market: {key: "0"}}},
             {key: "ticker0", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
             {key: "trades0", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
             {key: "ticks0", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades0"}}},
             {key: "ohlcv1", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "1"}, period: 15 * 60}},
-            {key: "depth1", name: "depth", item: {type: "marketLiveDepth", market: {key: "1"}}},
             {key: "ticker1", name: "ticker", item: {type: "marketLiveTicker", market: {key: "1"}}},
             {key: "trades1", name: "trades", item: {type: "marketTrades", market: {key: "1"}}},
             {key: "ticks1", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades1"}}},
         ],
         rootPane: {
-            type: "splitHorz",
+            type: "splitVert",
             children: [{
                 pane: {
-                    type: "splitVert",
-                    children: [{
-                        pane: {
-                            type: "view",
-                            view: {
-                                type: "timeChart",
-                                timespan: 12 * 60 * 60,
-                                plots: [{
-                                    heightWeight: 20,
-                                    series: [{
-                                        dataSource: {key: "ohlcv0"},
-                                        painter: {type: "candlestick"},
-                                    }],
-                                }, {
-                                    heightWeight: 20,
-                                    series: [{
-                                        dataSource: {key: "ohlcv1"},
-                                        painter: {type: "candlestick"},
-                                    }],
-                                }],
-                            },
-                        },
-                        sizeWeight: 4,
-                    }, {
-                        pane: {
-                            type: "splitHorz",
-                            children: [{
-                                pane: {
-                                    type: "view",
-                                    view: {
-                                        type: "simpleTicker",
-                                        dataSource: {key: "ticker0"},
-                                    },
-                                },
-                                sizeWeight: 1,
-                            }, {
-                                pane: {
-                                    type: "view",
-                                    view: {
-                                        type: "simpleTicker",
-                                        dataSource: {key: "ticker1"},
-                                    },
-                                },
-                                sizeWeight: 1,
+                    type: "view",
+                    view: {
+                        type: "timeChart",
+                        timespan: 12 * 60 * 60,
+                        plots: [{
+                            heightWeight: 20,
+                            series: [{
+                                dataSource: {key: "ohlcv0"},
+                                painter: {type: "candlestick"},
                             }],
-                        },
-                        sizeWeight: 1,
-                    }],
+                        }, {
+                            heightWeight: 20,
+                            series: [{
+                                dataSource: {key: "ohlcv1"},
+                                painter: {type: "candlestick"},
+                            }],
+                        }],
+                    },
                 },
-                sizeWeight: 1,
+                sizeWeight: 4,
             }, {
                 pane: {
-                    type: "splitVert",
+                    type: "splitHorz",
                     children: [{
                         pane: {
                             type: "view",
                             view: {
-                                type: "depthChart",
-                                dataSource: {key: "depth0"},
+                                type: "simpleTicker",
+                                dataSource: {key: "ticker0"},
                             },
                         },
                         sizeWeight: 1,
@@ -170,8 +138,8 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                         pane: {
                             type: "view",
                             view: {
-                                type: "depthChart",
-                                dataSource: {key: "depth1"},
+                                type: "simpleTicker",
+                                dataSource: {key: "ticker1"},
                             },
                         },
                         sizeWeight: 1,
@@ -182,7 +150,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
         },
     },
 }, {
-    name: "Triple Wide Compare",
+    name: "Wide Compare 3",
     layout: {
         markets: [
             {key: "0", name: "1", item: {exchange: "1", left: "BTC", right: "USD"}},
