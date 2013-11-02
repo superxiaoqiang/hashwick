@@ -4,6 +4,12 @@ title HashWick
 meta(name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no")
 link(rel="icon" href="/favicon.png")
 link(rel="stylesheet" href="/static/compiled/theme.bwhite.css")
+!="<script>"
+  | HashWick_serverTime = new Date(
+  !=  new Date().getTime()
+  | );
+  | HashWick_clientTime = new Date();
+!="</script>"
 
 header#app-header-navbar.navbar.navbar-default.navbar-fixed-top
   .navbar-header

@@ -17,13 +17,15 @@ if (0) views;
 
 
 function run(conf: any) {
+    _.extend(config, conf);
+    config.pageLoadServerTime = window["HashWick_serverTime"];
+    config.pageLoadClientTime = window["HashWick_clientTime"];
+
     var log = new Logger("app");
     log.info("Starting\u2026");
     logTimeInfo(log);
 
     $("main").html("Loading&hellip;");
-
-    _.extend(config, conf);
 
     markets.init();
     frame.init();
@@ -34,9 +36,9 @@ function run(conf: any) {
 }
 
 function logTimeInfo(log: Logger) {
-    var now = new Date();
-    log.info("UTC time is " + now.toISOString());
-    log.info("local time is " + now.toString());
+    log.info("server page generation time is " + config.pageLoadServerTime.toISOString());
+    log.info("client page load time is " + config.pageLoadClientTime.toISOString());
+    log.info("client local time is " + new Date().toString());
 }
 
 window["HashWick"] = {run: run};

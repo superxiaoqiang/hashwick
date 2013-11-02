@@ -1,5 +1,9 @@
+import config = require("../config");
+
+
 export function serverNow() {
-    return new Date();
+    var offset = config.pageLoadServerTime.getTime() - config.pageLoadClientTime.getTime();
+    return new Date(Date.now() + offset);
 }
 
 export function timestampToDate(timestamp: number) {
