@@ -10,6 +10,7 @@ export var all = [
     new Market(1, "mtgox", "BTC", "USD"),
     new Market(3, "btce", "BTC", "USD"),
     new Market(4, "bitstamp", "BTC", "USD"),
+    new Market(5, "bitfinex", "BTC", "USD"),
 ];
 
 export function byID(id: number) {

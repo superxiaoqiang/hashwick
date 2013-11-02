@@ -191,8 +191,11 @@ export function init() {
             left: "BTC",
             right: "USD",
             liveTickerDataSources: [
+                {source: new flugelhorn.LiveTicker("5")},
             ],
             tradesDataSources: [
+                {source: new flugelhorn.RealtimeTrades("5"), role: "realtime"},
+                {source: new flugelhorn.HistoricalTrades("5"), role: "historical"},
             ],
             ohlcvDataSources: [
             ],

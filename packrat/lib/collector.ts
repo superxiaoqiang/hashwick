@@ -70,6 +70,29 @@ class Collector {
         this.server.broadcast("trades:" + market.id, {trades: ts});
     }
 
+    private findMatchingTrade(market: markets.Market, trade: Trade) {
+        // the easy case
+        if (trade.id_from_exchange)
+            return this.db.get_trade_by_id_from_exchange(market.id, trade.id_from_exchange);
+
+        // the hard case (thanks, bitfinex)
+        return new Promise((resolve, reject) => {
+            var match: Trade;
+            this.db.stream_trades_from_to(market.id,
+                trade.timestamp, new Date(trade.timestamp.getTime() + 1000),
+                err => { reject(); },
+                row => {
+                    if (trade.timestamp.getTime() === row.timestamp.getTime() &&
+                            parseFloat(trade.price) === parseFloat(row.price) &&
+                            parseFloat(trade.amount) === parseFloat(row.amount))
+                        match = row;
+                },
+                result => {
+                    resolve(match);
+                });
+        });
+    }
+
     public storeTrades(left: string, right: string, trades: Trade[]) {
         if (!trades.length)
             return;
@@ -79,11 +102,8 @@ class Collector {
 
         // yes, i am aware of how terrible making db calls in a loop like this is
         _.each(trades, trade => {
-            if (!trade.id_from_exchange)
-                throw 0;  // TODO: instead search by timestamp/price/amount
-
-            this.db.get_trade_by_id_from_exchange(market.id, trade.id_from_exchange).then(existingTrade => {
-                if (!existingTrade)
+            this.findMatchingTrade(market, trade).then(matchingTrade => {
+                if (!matchingTrade)
                     this.db.insert_trade(market.id, trade).done();
             }).done();
         });

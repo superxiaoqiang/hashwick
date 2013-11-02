@@ -5,7 +5,7 @@ class Trade {
     public static MARKET = 8;
 
     constructor(public timestamp: Date, public flags: number,
-        public price: string, public amount: string, public id_from_exchange: string) { }
+        public price: string, public amount: string, public id_from_exchange?: string) { }
 }
 
 export = Trade;
