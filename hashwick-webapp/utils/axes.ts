@@ -13,7 +13,7 @@ export function makeXTicks(scale: { range(): number[]; ticks(count: number): any
 export function makeYTicks(scale: { range(): number[]; ticks(count: number): any[] }) {
     var range = scale.range();
     var rangeSpan = range[0] - range[1];
-    var numTicks = 12 - 4000 / (rangeSpan + 300);
+    var numTicks = 12 - 4000 / (rangeSpan + 333);
     numTicks = numTicks < 2 ? 2 : numTicks;
     return scale.ticks(numTicks);
 }
