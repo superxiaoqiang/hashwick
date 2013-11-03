@@ -80,7 +80,7 @@ export class Database {
     }
 
     public insert_order(market_id: number, order: Order, timestamp: Date, flags: number) {
-        return this.query('INSERT INTO "order"' +
+        return this.query("INSERT INTO depthsnapshotorder" +
                 " (market_id, timestamp, flags, price, amount)" +
                 " VALUES ($1, $2, $3, $4, $5)",
             [market_id, timestamp, flags, order.price, order.amount]);

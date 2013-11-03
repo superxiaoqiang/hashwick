@@ -64,10 +64,10 @@ CREATE TABLE candle (
 CREATE UNIQUE INDEX candle_market_id_timespan_start ON candle (market_id, timespan, start);
 
 
-CREATE SEQUENCE order_id_seq;
+CREATE SEQUENCE depthsnapshotorder_id_seq;
 
-CREATE TABLE "order" (
-    id INTEGER NOT NULL DEFAULT nextval('order_id_seq'),
+CREATE TABLE depthsnapshotorder (
+    id INTEGER NOT NULL DEFAULT nextval('depthsnapshotorder_id_seq'),
     market_id INTEGER NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     flags INTEGER NOT NULL,
@@ -76,4 +76,4 @@ CREATE TABLE "order" (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX order_market_id_timestamp_price ON "order" (market_id, timestamp, price);
+CREATE INDEX depthsnapshotorder_market_id_timestamp_price ON depthsnapshotorder (market_id, timestamp, price);
