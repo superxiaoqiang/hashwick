@@ -7,6 +7,9 @@
 import _ = require("underscore");
 
 import Logger = require("../lib/logger");
+import Bitfinex = require("../lib/exchanges/bitfinex");
+import Bitstamp = require("../lib/exchanges/bitstamp");
+import BTCE = require("../lib/exchanges/btce");
 import MtGox = require("../lib/exchanges/mtgox");
 import config = require("./config");
 import aggregate = require("./lib/aggregate");
@@ -44,6 +47,30 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         pollSchedulingGroupMinDelay: 3 * 1000,
         tickerPollRate: 30 * 1000,
         tradesPollRate: 30 * 1000,
+    });
+    bookkeeper.add({
+        exchange: new BTCE(),
+        market: markets.get("btce", "BTC", "USD"),
+        pollSchedulingGroup: "btce",
+        pollSchedulingGroupMinDelay: 3 * 1000,
+        tickerPollRate: 5 * 1000,
+        tradesPollRate: 5 * 1000,
+    });
+    bookkeeper.add({
+        exchange: new Bitstamp(),
+        market: markets.get("bitstamp", "BTC", "USD"),
+        pollSchedulingGroup: "bitstamp",
+        pollSchedulingGroupMinDelay: 3 * 1000,
+        tickerPollRate: 5 * 1000,
+        tradesPollRate: 5 * 1000,
+    });
+    bookkeeper.add({
+        exchange: new Bitfinex(),
+        market: markets.get("bitfinex", "BTC", "USD"),
+        pollSchedulingGroup: "bitfinex",
+        pollSchedulingGroupMinDelay: 3 * 1000,
+        tickerPollRate: 5 * 1000,
+        tradesPollRate: 5 * 1000,
     });
 }
 
