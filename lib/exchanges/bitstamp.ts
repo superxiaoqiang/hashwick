@@ -4,62 +4,36 @@ import _ = require("underscore");
 import Promise = require("bluebird");
 
 import httpx = require("../httpx");
-import Logger = require("../logger");
 import Ticker = require("../models/ticker");
 import Trade = require("../models/trade");
 import Exchange = require("./exchange");
 
 
-var log = new Logger("lib.exchanges.bitstamp");
-
-
 class Bitstamp extends Exchange {
-    private errorHandler(message: string, callback: () => void) {
-        return () => {
-            log.error(message);
-            callback();
-        };
-    }
-
     public fetchTicker(left: string, right: string) {
-        return new Promise((resolve, reject) => {
-            if (left !== "BTC" || right !== "USD")
-                return reject(new Error("invalid asset pair"));
+        if (left !== "BTC" || right !== "USD")
+            return Promise.rejected(new Error("invalid asset pair"));
 
-            var request = https.request({
-                host: "www.bitstamp.net",
-                path: "/api/ticker/",
-            });
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching ticker", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                resolve(decodeTicker(data));
-            }));
+        return httpx.request(https, {
+            host: "www.bitstamp.net",
+            path: "/api/ticker/",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return decodeTicker(data);
         });
     }
 
     public fetchTrades(left: string, right: string, since: Date) {
-        return new Promise((resolve, reject) => {
-            if (left !== "BTC" || right !== "USD")
-                return reject(new Error("invalid asset pair"));
+        if (left !== "BTC" || right !== "USD")
+            return Promise.rejected(new Error("invalid asset pair"));
 
-            var request = https.request({
-                host: "www.bitstamp.net",
-                path: "/api/transactions/?timedelta=" +
-                    Math.ceil((Date.now() - since.getTime()) / 1000),
-            });
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching trades", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                var trades = _.map(data, decodeTrade);
-                resolve(trades);
-            }));
+        return httpx.request(https, {
+            host: "www.bitstamp.net",
+            path: "/api/transactions/?timedelta=" +
+                Math.ceil((Date.now() - since.getTime()) / 1000),
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return _.map(data, decodeTrade);
         });
     }
 }

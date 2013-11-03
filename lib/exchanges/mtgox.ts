@@ -1,7 +1,6 @@
 import https = require("https");
 
 import _ = require("underscore");
-import Promise = require("bluebird");
 
 import httpx = require("../httpx");
 import Logger = require("../logger");
@@ -14,44 +13,24 @@ var log = new Logger("lib.exchanges.mtgox");
 
 
 class MtGox extends Exchange {
-    private errorHandler(message: string, callback: () => void) {
-        return () => {
-            log.error(message);
-            callback();
-        };
-    }
-
     public fetchTicker(left: string, right: string) {
-        return new Promise((resolve, reject) => {
-            var request = https.request({
-                host: "data.mtgox.com",
-                path: "/api/2/" + encodePair(left, right) + "/money/ticker",
-            });
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching ticker", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                resolve(decodeTicker(data.data).ticker);
-            }));
+        return httpx.request(https, {
+            host: "data.mtgox.com",
+            path: "/api/2/" + encodePair(left, right) + "/money/ticker",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return decodeTicker(data.data).ticker;
         });
     }
 
     public fetchTrades(left: string, right: string, since: Date) {
-        return new Promise((resolve, reject) => {
-            var path = "/api/2/" + encodePair(left, right) + "/money/trades/fetch?since=" +
-                Math.floor(since.getTime() * 1000);
-            var request = https.request({host: "data.mtgox.com", path: path});
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching trades", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                var trades = _.map(data.data, (t: any) => decodeTrade(t).trade);
-                resolve(trades);
-            }));
+        return httpx.request(https, {
+            host: "data.mtgox.com",
+            path: "/api/2/" + encodePair(left, right) + "/money/trades/fetch?since=" +
+                Math.floor(since.getTime() * 1000),
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return _.map(data.data, (t: any) => decodeTrade(t).trade);
         });
     }
 }

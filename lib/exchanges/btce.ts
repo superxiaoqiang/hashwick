@@ -1,7 +1,6 @@
 import https = require("https");
 
 import _ = require("underscore");
-import Promise = require("bluebird");
 
 import httpx = require("../httpx");
 import Logger = require("../logger");
@@ -14,46 +13,24 @@ var log = new Logger("lib.exchanges.btce");
 
 
 class BTCE extends Exchange {
-    private errorHandler(message: string, callback: () => void) {
-        return () => {
-            log.error(message);
-            callback();
-        };
-    }
-
     public fetchTicker(left: string, right: string) {
-        return new Promise((resolve, reject) => {
-            var request = https.request({
-                host: "btc-e.com",
-                path: "/api/2/" + encodePair(left, right) + "/ticker",
-            });
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching ticker", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                resolve(decodeTicker(data.ticker));
-            }));
+        return httpx.request(https, {
+            host: "btc-e.com",
+            path: "/api/2/" + encodePair(left, right) + "/ticker",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return decodeTicker(data.ticker);
         });
     }
 
     public fetchTrades(left: string, right: string, since: Date) {
-        return new Promise((resolve, reject) => {
-            var request = https.request({
-                host: "btc-e.com",
-                path: "/api/2/" + encodePair(left, right) + "/trades",
-            });
-            request.end();
-
-            request.on("error", this.errorHandler("error fetching trades", reject));
-
-            request.on("response", httpx.bodyAmalgamator(str => {
-                var data = JSON.parse(str);
-                data.reverse();  // order from oldest to newest
-                var trades = _.map(data, decodeTrade);
-                resolve(trades);
-            }));
+        return httpx.request(https, {
+            host: "btc-e.com",
+            path: "/api/2/" + encodePair(left, right) + "/trades",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            data.reverse();  // order from oldest to newest
+            return _.map(data, decodeTrade);
         });
     }
 }
