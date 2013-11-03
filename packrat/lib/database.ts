@@ -4,6 +4,7 @@ import Promise = require("bluebird");
 
 import sql = require("../../lib/sql");
 import Candle = require("../../lib/models/candle");
+import Order = require("../../lib/models/order");
 import Ticker = require("../../lib/models/ticker");
 import Trade = require("../../lib/models/trade");
 
@@ -76,6 +77,13 @@ export class Database {
                 " (market_id, timestamp, flags, price, amount, id_from_exchange)" +
                 " VALUES ($1, $2, $3, $4, $5, $6)",
             [market_id, trade.timestamp, trade.flags, trade.price, trade.amount, trade.id_from_exchange]);
+    }
+
+    public insert_order(market_id: number, order: Order, timestamp: Date, flags: number) {
+        return this.query('INSERT INTO "order"' +
+                " (market_id, timestamp, flags, price, amount)" +
+                " VALUES ($1, $2, $3, $4, $5)",
+            [market_id, timestamp, flags, order.price, order.amount]);
     }
 
     public upsert_candle(market_id: number, candle: Candle) {

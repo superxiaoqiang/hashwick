@@ -4,6 +4,8 @@ import _ = require("underscore");
 
 import httpx = require("../httpx");
 import Logger = require("../logger");
+import Order = require("../models/order");
+import OrderBook = require("../models/orderBook");
 import Ticker = require("../models/ticker");
 import Trade = require("../models/trade");
 import Exchange = require("./exchange");
@@ -31,6 +33,18 @@ class MtGox extends Exchange {
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
             return _.map(data.data, (t: any) => decodeTrade(t).trade);
+        });
+    }
+
+    public fetchOrderBook(left: string, right: string) {
+        return httpx.request(https, {
+            host: "data.mtgox.com",
+            path: "/api/2/" + encodePair(left, right) + "/money/depth/fetch",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return new OrderBook(
+                _.map(data.data.bids, decodeOrder),
+                _.map(data.data.asks, decodeOrder));
         });
     }
 }
@@ -90,6 +104,10 @@ function decodeTrade(t: any) {
         right: right,
         trade: new Trade(decodeTimestamp(t.tid), flags, price, amount, t.tid),
     };
+}
+
+function decodeOrder(o: any) {
+    return new Order(o.price, o.amount);
 }
 
 

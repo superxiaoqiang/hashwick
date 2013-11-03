@@ -47,6 +47,7 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         pollSchedulingGroupMinDelay: 3 * 1000,
         tickerPollRate: 30 * 1000,
         tradesPollRate: 30 * 1000,
+        depthPollRate: 30 * 1000,
     });
     bookkeeper.add({
         exchange: new BTCE(),

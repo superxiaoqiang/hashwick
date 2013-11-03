@@ -5,6 +5,8 @@ import Logger = require("../../lib/logger");
 import PromiseScheduler = require("../../lib/promiseScheduler");
 import Exchange = require("../../lib/exchanges/exchange");
 import Market = require("../../lib/models/market");
+import Order = require("../../lib/models/order");
+import OrderBook = require("../../lib/models/orderBook");
 import Ticker = require("../../lib/models/ticker");
 import Trade = require("../../lib/models/trade");
 import database = require("./database");
@@ -21,6 +23,7 @@ export interface ExchangeInfo {
     pollSchedulingGroupMinDelay: number;
     tickerPollRate?: number;
     tradesPollRate?: number;
+    depthPollRate?: number;
 }
 
 
@@ -42,6 +45,8 @@ export class Bookkeeper {
             scheduler.schedule(this.fetchTicker.bind(this, info), info.tickerPollRate);
         if (info.tradesPollRate)
             scheduler.schedule(this.fetchTrades.bind(this, info), info.tradesPollRate);
+        if (info.depthPollRate)
+            scheduler.schedule(this.fetchDepth.bind(this, info), info.depthPollRate);
     }
 
     private fetchTicker(info: ExchangeInfo) {
@@ -73,6 +78,17 @@ export class Bookkeeper {
             });
         }, (err: any) => {
             log.error(info.market.describe() + " - error fetching trades: " + err);
+        });
+    }
+
+    private fetchDepth(info: ExchangeInfo) {
+        log.debug(info.market.describe() + " - fetching depth");
+        return info.exchange.fetchOrderBook(info.market.left, info.market.right).then(orderBook => {
+            log.debug(info.market.describe() + " - got depth, " + orderBook.bids.length +
+                " bids, " + orderBook.asks.length + " asks");
+            this.storeOrderBook(info.market, orderBook, new Date());
+        }, err => {
+            log.error(info.market.describe() + " - error fetching depth: " + err);
         });
     }
 
@@ -116,6 +132,15 @@ export class Bookkeeper {
                     resolve(match);
                 });
         });
+    }
+
+    private storeOrderBook(market: Market, orderBook: OrderBook, timestamp: Date) {
+        _.each(orderBook.bids, storeOrder.bind(this, Order.BID));
+        _.each(orderBook.asks, storeOrder.bind(this, Order.ASK));
+
+        function storeOrder(flags: number, order: Order) {
+            this.db.insert_order(market.id, order, timestamp, flags).done();
+        }
     }
 
     private streamTicker(market: Market, ticker: Ticker) {
