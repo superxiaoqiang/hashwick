@@ -42,9 +42,12 @@ class MtGox extends Exchange {
             path: "/api/2/" + encodePair(left, right) + "/money/depth/fetch",
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
+            var bids = data.data.bids;
+            var asks = data.data.asks;
+            bids.reverse();
             return new OrderBook(
-                _.map(data.data.bids, decodeOrder),
-                _.map(data.data.asks, decodeOrder));
+                _.map(bids, decodeOrder),
+                _.map(asks, decodeOrder));
         });
     }
 }
