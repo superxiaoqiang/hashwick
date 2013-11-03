@@ -3,6 +3,7 @@ import Promise = require("bluebird");
 
 import Logger = require("../../lib/logger");
 import PromiseScheduler = require("../../lib/promiseScheduler");
+import serializers = require("../../lib/serializers");
 import Exchange = require("../../lib/exchanges/exchange");
 import Market = require("../../lib/models/market");
 import Order = require("../../lib/models/order");
@@ -86,6 +87,7 @@ export class Bookkeeper {
         return info.exchange.fetchOrderBook(info.market.left, info.market.right).then(orderBook => {
             log.debug(info.market.describe() + " - got depth, " + orderBook.bids.length +
                 " bids, " + orderBook.asks.length + " asks");
+            this.streamOrderBook(info.market, orderBook);
             this.storeOrderBook(info.market, orderBook, new Date());
         }, err => {
             log.error(info.market.describe() + " - error fetching depth: " + err);
@@ -144,26 +146,17 @@ export class Bookkeeper {
     }
 
     private streamTicker(market: Market, ticker: Ticker) {
-        this.server.broadcast("ticker:" + market.id, {
-            timestamp: ticker.timestamp.getTime() / 1000,
-            last: ticker.last,
-            bid: ticker.bid,
-            ask: ticker.ask,
-        });
+        this.server.broadcast("ticker:" + market.id, serializers.serializeTicker(ticker));
     }
 
     public streamTrades(market: Market, trades: Trade[]) {
         if (!trades.length)
             return;
-        var ts = _.map(trades, trade => {
-            return {
-                timestamp: trade.timestamp.getTime() / 1000,
-                flags: trade.flags,
-                price: trade.price,
-                amount: trade.amount,
-                id_from_exchange: trade.id_from_exchange,
-            };
-        });
+        var ts = _.map(trades, serializers.serializeTrade);
         this.server.broadcast("trades:" + market.id, {trades: ts});
+    }
+
+    public streamOrderBook(market: Market, orderBook: OrderBook) {
+        this.server.broadcast("depth:" + market.id, serializers.serializeOrderBook(orderBook));
     }
 }

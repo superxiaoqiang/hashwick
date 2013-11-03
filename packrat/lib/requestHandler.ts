@@ -1,6 +1,8 @@
 import _ = require("underscore");
 
+import serializers = require("../../lib/serializers");
 import Order = require("../../lib/models/order");
+import OrderBook = require("../../lib/models/orderBook");
 import database = require("./database");
 import Flugelserver = require("./server");
 
@@ -27,13 +29,7 @@ class RequestHandler {
             new Date(data.earliest * 1000), new Date(data.latest * 1000),
             err => { throw err; },
             trade => {
-                pending.push({
-                    timestamp: trade.timestamp.getTime() / 1000,
-                    flags: trade.flags,
-                    price: trade.price,
-                    amount: trade.amount,
-                    id_from_exchange: trade.id_from_exchange,
-                });
+                pending.push(serializers.serializeTrade(trade));
                 if (pending.length >= 500)
                     flush();
             },
@@ -49,20 +45,8 @@ class RequestHandler {
         }).then((orders: Order[]) => {
             if (!orders)
                 return;
-
-            var sides = _.groupBy(orders, o => o.flags & Order.SIDE_MASK);
-            var bids = sides[Order.BID];
-            var asks = sides[Order.ASK];
-            bids.reverse();
-
-            function serializeOrder(order: Order) {
-                return {price: order.price, amount: order.amount};
-            }
-
-            this.server.sendToOne(socket, "depth:" + data.marketID, {
-                bids: _.map(bids, serializeOrder),
-                asks: _.map(asks, serializeOrder),
-            });
+            var book = OrderBook.fromSortedOrders(orders);
+            this.server.sendToOne(socket, "depth:" + data.marketID, serializers.serializeOrderBook(book));
         });
     }
 }
