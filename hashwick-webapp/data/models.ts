@@ -90,9 +90,14 @@ export interface DepthData {
     asks: DepthDataPoint[];
 }
 
-export interface DepthDataPoint {
+export class DepthDataPoint {
     price: number;
     amount: number;
+
+    constructor(price: number, amount: number) {
+        this.price = price;
+        this.amount = amount;
+    }
 }
 
 export interface Portfolio {

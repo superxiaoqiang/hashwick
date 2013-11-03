@@ -66,6 +66,20 @@ export class Database {
             .then(result => result.rows[0]);
     }
 
+    public get_latest_depth_snapshot_timestamp(market_id: number) {
+        return this.query("SELECT timestamp FROM depthsnapshotorder" +
+                " WHERE market_id = $1" +
+                " ORDER BY timestamp DESC LIMIT 1", [market_id])
+            .then(result => result.rows.length ? result.rows[0].timestamp : undefined);
+    }
+
+    public get_depth_snapshot_orders_at_timestamp(market_id: number, timestamp: Date) {
+        return this.query("SELECT * FROM depthsnapshotorder" +
+                " WHERE market_id = $1 AND timestamp = $2" +
+                " ORDER BY price", [market_id, timestamp])
+            .then(result => result.rows);
+    }
+
     public insert_ticker(market_id: number, ticker: Ticker) {
         return this.query("INSERT INTO ticker" +
                 " (market_id, timestamp, last, bid, ask) VALUES ($1, $2, $3, $4, $5)",

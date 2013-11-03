@@ -20,6 +20,8 @@ import models_ = require("../models");
 if (0) models_;
 import SnapshotData = models_.SnapshotData;
 import TemporalData = models_.TemporalData;
+import DepthData = models_.DepthData;
+import DepthDataPoint = models_.DepthDataPoint;
 import Ticker = models_.Ticker;
 import Trade = models_.Trade;
 
@@ -216,4 +218,61 @@ export class HistoricalTrades extends interfaces.TradesDataSource {
         this.items.mergeItems(trades);
         this.pendingPromise.resolve();
     }
+}
+
+
+export class LiveDepth extends interfaces.LiveDepthDataSource {
+    private marketID: string;
+    private log: Logger;
+    private realtime: number;
+    private data: SnapshotData<DepthData>;
+    private pendingPromise = new PendingPromise<void>();
+
+    constructor(marketID: string) {
+        super();
+        this.marketID = marketID;
+        this.log = new Logger("data.connect.flugelhorn.LiveDepth:" + marketID);
+        this.realtime = 0;
+        socketeer.handlers["depth:" + this.marketID] = this.message.bind(this);
+    }
+
+    public wantRealtime() {
+        if (!this.realtime++)
+            socketeer.subscribe("depth:" + this.marketID);
+        this.log.trace("realtime up to " + this.realtime);
+    }
+
+    public unwantRealtime() {
+        if (!-- this.realtime)
+            socketeer.unsubscribe("depth:" + this.marketID);
+        this.log.trace("realtime down to " + this.realtime);
+    }
+
+    public prefetch() {
+        socketeer.send("getDepth", {marketID: this.marketID});
+        return this.pendingPromise.promise();
+    }
+
+    public getFromMemory() {
+        return this.data;
+    }
+
+    private message(message: any) {
+        var timestamp = new Date();
+        var depth = decodeDepth(message.data);
+        this.data = new SnapshotData(timestamp, depth);
+        this.gotData.emit();
+        this.pendingPromise.resolve();
+    }
+}
+
+function decodeDepth(depth: any) {
+    return {
+        bids: _.map(depth.bids, decodeDepthItem),
+        asks: _.map(depth.asks, decodeDepthItem),
+    };
+}
+
+function decodeDepthItem(i: any) {
+    return new DepthDataPoint(parseFloat(i.price), parseFloat(i.amount));
 }

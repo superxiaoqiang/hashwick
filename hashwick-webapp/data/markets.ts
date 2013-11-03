@@ -124,6 +124,7 @@ export function init() {
             ohlcvDataSources: [
             ],
             liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("1")},
             ],
         }],
     }, /*{
