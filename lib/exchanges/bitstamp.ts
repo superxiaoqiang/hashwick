@@ -4,6 +4,8 @@ import _ = require("underscore");
 import Promise = require("bluebird");
 
 import httpx = require("../httpx");
+import Order = require("../models/order");
+import OrderBook = require("../models/orderBook");
 import Ticker = require("../models/ticker");
 import Trade = require("../models/trade");
 import Exchange = require("./exchange");
@@ -36,6 +38,21 @@ class Bitstamp extends Exchange {
             return _.map(data, decodeTrade);
         });
     }
+
+    public fetchOrderBook(left: string, right: string) {
+        if (left !== "BTC" || right !== "USD")
+            return Promise.rejected(new Error("invalid asset pair"));
+
+        return httpx.request(https, {
+            host: "www.bitstamp.net",
+            path: "/api/order_book/",
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return new OrderBook(
+                _.map(data.bids, decodeOrder),
+                _.map(data.asks, decodeOrder));
+        });
+    }
 }
 
 
@@ -49,6 +66,10 @@ function decodeTicker(t: any) {
 
 function decodeTrade(t: any) {
     return new Trade(decodeTimestamp(t.date), 0, t.price, t.amount, t.tid);
+}
+
+function decodeOrder(o: any) {
+    return new Order(o[0], o[1]);
 }
 
 

@@ -56,6 +56,7 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         pollSchedulingGroupMinDelay: 3 * 1000,
         tickerPollRate: 5 * 1000,
         tradesPollRate: 5 * 1000,
+        depthPollRate: 30 * 1000,
     });
     bookkeeper.add({
         exchange: new Bitstamp(),
@@ -64,6 +65,7 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         pollSchedulingGroupMinDelay: 3 * 1000,
         tickerPollRate: 5 * 1000,
         tradesPollRate: 5 * 1000,
+        depthPollRate: 30 * 1000,
     });
     bookkeeper.add({
         exchange: new Bitfinex(),
@@ -72,6 +74,7 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         pollSchedulingGroupMinDelay: 3 * 1000,
         tickerPollRate: 5 * 1000,
         tradesPollRate: 5 * 1000,
+        depthPollRate: 30 * 1000,
     });
 }
 

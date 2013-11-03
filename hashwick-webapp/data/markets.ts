@@ -152,6 +152,7 @@ export function init() {
             ohlcvDataSources: [
             ],
             liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("3")},
             ],
         }],
     }, {
@@ -177,6 +178,7 @@ export function init() {
             ohlcvDataSources: [
             ],
             liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("4")},
             ],
         }],
     }, {
@@ -201,6 +203,7 @@ export function init() {
             ohlcvDataSources: [
             ],
             liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("5")},
             ],
         }],
     }], makeExchange), xchg => xchg.id);

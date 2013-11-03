@@ -3,6 +3,8 @@ import https = require("https");
 import _ = require("underscore");
 
 import httpx = require("../httpx");
+import Order = require("../models/order");
+import OrderBook = require("../models/orderBook");
 import Ticker = require("../models/ticker");
 import Trade = require("../models/trade");
 import Exchange = require("./exchange");
@@ -34,6 +36,19 @@ class Bitfinex extends Exchange {
         });
     }
 
+    public fetchOrderBook(left: string, right: string) {
+        return httpx.request(https, {
+            host: "api.bitfinex.com",
+            path: "/v1/book/" + encodePair(left, right),
+            headers: this.requestHeaders(),
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return new OrderBook(
+                _.map(data.bids, decodeOrder),
+                _.map(data.asks, decodeOrder));
+        });
+    }
+
     private requestHeaders(payload?: any) {
         return payload && {
             "X-BFX-PAYLOAD": new Buffer(JSON.stringify(payload)).toString("base64")
@@ -56,6 +71,10 @@ function decodeTicker(t: any) {
 
 function decodeTrade(t: any) {
     return new Trade(decodeTimestamp(t.timestamp), 0, t.price, t.amount);
+}
+
+function decodeOrder(o: any) {
+    return new Order(o.price, o.amount);
 }
 
 
