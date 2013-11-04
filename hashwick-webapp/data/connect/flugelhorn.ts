@@ -215,7 +215,12 @@ export class HistoricalTrades extends interfaces.TradesDataSource {
 
     private message(message: any) {
         var trades = _.map(message.data.trades, decodeTrade);
+        this.logTradesInfo(trades);
+        this.items.mergeItems(trades);
+        this.pendingPromise.resolve();
+    }
 
+    private logTradesInfo(trades: Trade[]) {
         var message = "got " + trades.length + " trades";
         if (trades.length)
             message += ", from " + trades[0].timestamp.toISOString() +
@@ -227,9 +232,6 @@ export class HistoricalTrades extends interfaces.TradesDataSource {
             if (diff > 0)
                 this.log.info("last received trade is " + diff / 1000 + " sec in the future");
         }
-
-        this.items.mergeItems(trades);
-        this.pendingPromise.resolve();
     }
 }
 
