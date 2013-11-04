@@ -51,7 +51,7 @@ class DepthChartView implements View {
         ret.dataSource.item.gotData.attach(ret.redraw);
         ret.dataSource.item.wantRealtime();
         ret.dataSource.item.prefetch();
-        ret.spreadWidth = structure.spreadWidth || 0.1;
+        ret.spreadWidth = structure.spreadWidth || 0.05;
         return ret;
     }
 
