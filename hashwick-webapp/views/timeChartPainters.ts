@@ -75,8 +75,8 @@ class CandlestickPainter implements TemporalDataPainter<number> {
         return {type: CandlestickPainter.type};
     }
 
-    public adjustDomain(domain: MinMaxPair<Date>) {
-        return new MinMaxPair<Date>(
+    public adjustDomain(domain: MinMaxPair<Date>): MinMaxPair<Date> {
+        return new MinMaxPair(
             time.roundDate(domain.min, this.dataSource.period, Math.ceil),
             time.roundDate(domain.max, this.dataSource.period, Math.ceil));
     }
@@ -168,8 +168,8 @@ class VolumeBarsPainter implements TemporalDataPainter<number> {
         return {type: VolumeBarsPainter.type};
     }
 
-    public adjustDomain(domain: MinMaxPair<Date>) {
-        return new MinMaxPair<Date>(
+    public adjustDomain(domain: MinMaxPair<Date>): MinMaxPair<Date> {
+        return new MinMaxPair(
             time.roundDate(domain.min, this.dataSource.period, Math.ceil),
             time.roundDate(domain.max, this.dataSource.period, Math.ceil));
     }
