@@ -41,6 +41,10 @@ export class ClingyWebSocket {
         clearInterval(this.timeoutInterval);
     }
 
+    public getReadyState() {
+        return this.socket ? this.socket.readyState : WebSocket.CLOSED;
+    }
+
     public send(message: string) {
         this.socket.send(message);
     }
