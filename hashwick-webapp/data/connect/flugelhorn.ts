@@ -122,20 +122,6 @@ class Channel {
 var socketeer = new Socketeer();
 
 
-function decodeTicker(t: any) {
-    var ticker = new Ticker();
-    ticker.last = parseFloat(t.last);
-    ticker.bid = parseFloat(t.bid);
-    ticker.ask = parseFloat(t.ask);
-    return ticker;
-}
-
-function decodeTrade(trade: any) {
-    return new Trade(new Date(trade.timestamp * 1000), trade.flags,
-        parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
-}
-
-
 class RealtimeMixin {
     private log: Logger;
     private channel: Channel;
@@ -334,6 +320,20 @@ export class LiveDepth extends interfaces.LiveDepthDataSource implements Realtim
         this.gotData.emit();
         this.pendingPromise.resolve();
     }
+}
+
+
+function decodeTicker(t: any) {
+    var ticker = new Ticker();
+    ticker.last = parseFloat(t.last);
+    ticker.bid = parseFloat(t.bid);
+    ticker.ask = parseFloat(t.ask);
+    return ticker;
+}
+
+function decodeTrade(trade: any) {
+    return new Trade(new Date(trade.timestamp * 1000), trade.flags,
+        parseFloat(trade.price), parseFloat(trade.amount), trade.id_from_exchange);
 }
 
 function decodeDepth(depth: any) {
