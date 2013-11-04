@@ -24,23 +24,20 @@ import serialization = require("./serialization");
 export function convertTradesToTicks(trades: Trade[]) {
     var ret: Trade[] = [];
     var curTick: Trade;
-    var BUYSELL = Trade.BUY | Trade.SELL
 
     _.each(trades, trade => {
-        if (!curTick) {
-            curTick = trade;
-            return;
+        var BUYSELL = Trade.BUY | Trade.SELL;
+
+        if (curTick) {
+            if (((trade.flags & BUYSELL) === curTick.flags) && trade.price === curTick.price) {
+                curTick.amount += trade.amount;
+                return;
+            }
+            ret.push(curTick);
         }
 
-        var tradeFlags = trade.flags & BUYSELL;
-        if ((!tradeFlags || tradeFlags === curTick.flags) && trade.price === curTick.price) {
-            curTick.amount += trade.amount;
-        } else {
-            if (curTick)
-                ret.push(curTick);
-            var flags = trade.flags & BUYSELL;
-            curTick = new Trade(trade.timestamp, flags, trade.price, trade.amount, null);
-        }
+        curTick = new Trade(trade.timestamp, trade.flags & BUYSELL,
+            trade.price, trade.amount, null);
     });
     if (curTick)
         ret.push(curTick);
