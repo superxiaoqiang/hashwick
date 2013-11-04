@@ -68,11 +68,23 @@ export class Bookkeeper {
             log.debug(info.market.describe() + " - fetching trades since " + since.toISOString());
             return info.exchange.fetchTrades(info.market.left, info.market.right, since);
         }).then((trades: Trade[]) => {
+            if (trades.length) {
+                var diff = trades[trades.length - 1].timestamp.getTime() - new Date().getTime();
+                if (diff > 0)
+                    log.info(info.market.describe() + " - last received trade is " +
+                        diff / 1000 + " sec in the future");
+            }
+
             numTrades = trades.length;
             return this.filterTradesToUnseen(info.market, trades);
         }).then((trades: Trade[]): any => {
-            log.debug(info.market.describe() + " - received " + numTrades + " trades, " +
-                trades.length + " of which are new");
+            var message = info.market.describe() + " - received " + numTrades + " trades, " +
+                trades.length + " of which are new";
+            if (trades.length)
+                message += ", from " + trades[0].timestamp.toISOString() + " to " +
+                    trades[trades.length - 1].timestamp.toISOString();
+            log.debug(message);
+
             this.streamTrades(info.market, trades);
             _.each(trades, trade => {
                 this.db.insert_trade(info.market.id, trade).done();
