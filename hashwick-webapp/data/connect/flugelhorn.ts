@@ -2,6 +2,7 @@ import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
 if (0) clingyWebSocket_;
 import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
 import ClingyWebSocketOptions = clingyWebSocket_.ClingyWebSocketOptions;
+import mixin = require("../../../lib/mixin");
 import PendingPromise = require("../../../lib/pendingPromise");
 import rangeCache_ = require("../../../lib/rangeCache");
 if (0) rangeCache_;
@@ -31,8 +32,7 @@ var statusIcon: StatusIcon;
 
 class Socketeer {
     private socket: ClingyWebSocket;
-    public subscriptions: { [channel: string]: void; } = {};
-    public handlers: { [channel: string]: (data: any) => void; } = {};
+    public channels: { [name: string]: Channel; } = {};
     private log: Logger;
 
     public connect() {
@@ -54,37 +54,70 @@ class Socketeer {
         frame.removeFooterIcon(statusIcon);
     }
 
-    public send(channel: string, data: any) {
-        this.socket.send(JSON.stringify({command: "message", channel: channel, data: data}));
+    public getReadyState() {
+        return this.socket ? this.socket.getReadyState() : WebSocket.CLOSED;
     }
 
-    public subscribe(channel: string) {
+    public register(name: string) {
+        var channel = new Channel(name);
+        this.channels[name] = channel;
+        return channel;
+    }
+
+    public send(channelName: string, data: any) {
+        this.socket.send(JSON.stringify({command: "message", channel: channelName, data: data}));
+    }
+
+    public subscribe(channel: Channel) {
         this.connect();
-        this.log.debug("subscribing to " + channel);
-        this.subscriptions[channel] = undefined;
-        this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
+        this.log.debug("subscribing to " + channel.name);
+        channel.subscribed = true;
+        if (this.getReadyState() === WebSocket.OPEN)
+            this.socket.send(JSON.stringify({command: "subscribe", channel: channel.name}));
     }
 
-    public unsubscribe(channel: string) {
-        this.log.debug("unsubscribing from " + channel);
-        delete this.subscriptions[channel];
-        this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
+    public unsubscribe(channel: Channel) {
+        this.log.debug("unsubscribing from " + channel.name);
+        channel.subscribed = false;
+        if (this.getReadyState() === WebSocket.OPEN)
+            this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel.name}));
     }
 
     private onConnect() {
-        for (var channel in this.subscriptions) {
-            this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
-        }
+        _.each(this.channels, channel => {
+            if (channel.subscribed)
+                this.socket.send(JSON.stringify({command: "subscribe", channel: channel.name}));
+            if (channel.onOpen)
+                channel.onOpen();
+        });
     }
 
     private onMessage(event: MessageEvent) {
         var data = JSON.parse(event.data);
         statusIcon.logPacket(data.channel || "[unknown]");
-        var handler = this.handlers[data.channel];
-        if (handler)
-            handler(data);
+        var channel = this.channels[data.channel];
+        if (channel && channel.onMessage)
+            channel.onMessage(data);
     }
 }
+
+
+class Channel {
+    public subscribed: boolean;
+    public onOpen: () => void;
+    public onMessage: (data: any) => void;
+
+    constructor(public name: string) { }
+
+    public subscribe() {
+        socketeer.subscribe(this);
+    }
+
+    public unsubscribe() {
+        socketeer.unsubscribe(this);
+    }
+}
+
 
 var socketeer = new Socketeer();
 
@@ -103,40 +136,64 @@ function decodeTrade(trade: any) {
 }
 
 
-export class LiveTicker extends interfaces.LiveTickerDataSource {
-    private marketID: string;
+class RealtimeMixin {
     private log: Logger;
+    private channel: Channel;
     private realtime: number;
-    private data: SnapshotData<Ticker>;
-    private pendingPromise = new PendingPromise<void>();
 
-    constructor(marketID: string) {
-        super();
-        this.marketID = marketID;
-        this.log = new Logger("data.connect.flugelhorn.LiveTicker:" + marketID);
+    constructor() {
         this.realtime = 0;
-        socketeer.handlers["ticker:" + this.marketID] = this.message.bind(this);
     }
 
     public wantRealtime() {
         if (!this.realtime++)
-            socketeer.subscribe("ticker:" + this.marketID);
+            this.channel.subscribe();
         this.log.trace("realtime up to " + this.realtime);
     }
 
     public unwantRealtime() {
         if (!-- this.realtime)
-            socketeer.unsubscribe("ticker:" + this.marketID);
+            this.channel.unsubscribe();
         this.log.trace("realtime down to " + this.realtime);
+    }
+}
+
+
+export class LiveTicker extends interfaces.LiveTickerDataSource implements RealtimeMixin {
+    private marketID: string;
+    private log: Logger;
+    private data: SnapshotData<Ticker>;
+    private channel: Channel;
+    private pendingPrefetch: boolean;
+    private pendingPromise = new PendingPromise<void>();
+
+    constructor(marketID: string) {
+        super();
+        mixin.apply(this, new RealtimeMixin());
+        this.marketID = marketID;
+        this.log = new Logger("data.connect.flugelhorn.LiveTicker:" + marketID);
+        this.channel = socketeer.register("ticker:" + this.marketID);
+        this.channel.onOpen = this.open.bind(this);
+        this.channel.onMessage = this.message.bind(this);
     }
 
     public prefetch() {
-        socketeer.send("getTicker", {marketID: this.marketID});
+        if (socketeer.getReadyState() === WebSocket.OPEN)
+            socketeer.send("getTicker", {marketID: this.marketID});
+        else
+            this.pendingPrefetch = true;
         return this.pendingPromise.promise();
     }
 
     public getFromMemory() {
         return this.data;
+    }
+
+    private open() {
+        if (this.pendingPrefetch) {
+            this.prefetch();
+            this.pendingPrefetch = false;
+        }
     }
 
     private message(message: any) {
@@ -149,71 +206,65 @@ export class LiveTicker extends interfaces.LiveTickerDataSource {
 }
 
 
+// TODO: evaluate whether or not this is useful or necessary
 export class RealtimeTrades extends interfaces.TradesDataSource {
     private marketID: string;
     private log: Logger;
-    private realtime: number;
-    private items: RangeCache<Date, Trade>;
 
     constructor(marketID: string) {
         super();
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.RealtimeTrades:" + marketID);
-        this.realtime = 0;
-        this.items = new RangeCache<Date, Trade>(
-            this.format.sortKey, this.format.uniqueKey, () => $.Deferred().resolve());
-        this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
-        socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
-    }
-
-    public wantRealtime() {
-        if (!this.realtime++)
-            socketeer.subscribe("trades:" + this.marketID);
-        this.log.trace("realtime up to " + this.realtime);
-    }
-
-    public unwantRealtime() {
-        if (!-- this.realtime)
-            socketeer.unsubscribe("trades:" + this.marketID);
-        this.log.trace("realtime down to " + this.realtime);
     }
 
     public getFromMemory(earliest: Date, latest: Date) {
-        return new TemporalData(this.items.getFromMemory(earliest, latest));
-    }
-
-    private message(message: any) {
-        var trades = _.map(message.data.trades, decodeTrade);
-        this.items.mergeItems(trades);
+        return new TemporalData([]);
     }
 }
 
 
-export class HistoricalTrades extends interfaces.TradesDataSource {
+export class HistoricalTrades extends interfaces.TradesDataSource implements RealtimeMixin {
     private marketID: string;
     private log: Logger;
     private items: RangeCache<Date, Trade>;
+    private channel: Channel;
     private pendingPromise = new PendingPromise<void>();
+    private prefetchQueue: any[] = [];
 
     constructor(marketID: string) {
         super();
+        mixin.apply(this, new RealtimeMixin());
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
         this.items = new RangeCache<Date, Trade>(
             this.format.sortKey, this.format.uniqueKey, this.prefetch.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
-        socketeer.handlers["trades:" + this.marketID] = this.message.bind(this);
+        this.channel = socketeer.register("trades:" + this.marketID);
+        this.channel.onOpen = this.open.bind(this);
+        this.channel.onMessage = this.message.bind(this);
     }
 
     public prefetch(earliest: Date, latest: Date) {
         this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
-        socketeer.send("getTrades",
-            {marketID: this.marketID, earliest: earliest.getTime() / 1000, latest: latest.getTime() / 1000});
+        var obj = {marketID: this.marketID,
+            earliest: earliest.getTime() / 1000, latest: latest.getTime() / 1000};
+        if (socketeer.getReadyState() === WebSocket.OPEN)
+            socketeer.send("getTrades", obj);
+        else
+            this.prefetchQueue.push(obj);
         return this.pendingPromise.promise();
     }
 
     public getFromMemory(earliest: Date, latest: Date) {
         return new TemporalData(this.items.getFromMemory(earliest, latest));
+    }
+
+    private open() {
+        // TODO: this is very naive, maybe it should coalesce ranges or something?
+        _.each(this.prefetchQueue, obj => {
+            socketeer.send("getTrades", obj);
+        });
+        this.prefetchQueue = [];
     }
 
     private message(message: any) {
@@ -239,40 +290,41 @@ export class HistoricalTrades extends interfaces.TradesDataSource {
 }
 
 
-export class LiveDepth extends interfaces.LiveDepthDataSource {
+export class LiveDepth extends interfaces.LiveDepthDataSource implements RealtimeMixin {
     private marketID: string;
     private log: Logger;
-    private realtime: number;
     private data: SnapshotData<DepthData>;
+    private channel: Channel;
+    private pendingPrefetch: boolean;
     private pendingPromise = new PendingPromise<void>();
 
     constructor(marketID: string) {
         super();
+        mixin.apply(this, new RealtimeMixin());
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.LiveDepth:" + marketID);
-        this.realtime = 0;
-        socketeer.handlers["depth:" + this.marketID] = this.message.bind(this);
-    }
-
-    public wantRealtime() {
-        if (!this.realtime++)
-            socketeer.subscribe("depth:" + this.marketID);
-        this.log.trace("realtime up to " + this.realtime);
-    }
-
-    public unwantRealtime() {
-        if (!-- this.realtime)
-            socketeer.unsubscribe("depth:" + this.marketID);
-        this.log.trace("realtime down to " + this.realtime);
+        this.channel = socketeer.register("depth:" + this.marketID);
+        this.channel.onOpen = this.open.bind(this);
+        this.channel.onMessage = this.message.bind(this);
     }
 
     public prefetch() {
-        socketeer.send("getDepth", {marketID: this.marketID});
+        if (socketeer.getReadyState() === WebSocket.OPEN)
+            socketeer.send("getDepth", {marketID: this.marketID});
+        else
+            this.pendingPrefetch = true;
         return this.pendingPromise.promise();
     }
 
     public getFromMemory() {
         return this.data;
+    }
+
+    private open() {
+        if (this.pendingPrefetch) {
+            this.prefetch();
+            this.pendingPrefetch = false;
+        }
     }
 
     private message(message: any) {
