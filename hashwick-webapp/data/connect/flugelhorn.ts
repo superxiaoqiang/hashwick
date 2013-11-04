@@ -31,6 +31,7 @@ var statusIcon: StatusIcon;
 
 class Socketeer {
     private socket: ClingyWebSocket;
+    public subscriptions: { [channel: string]: void; } = {};
     public handlers: { [channel: string]: (data: any) => void; } = {};
     private log: Logger;
 
@@ -60,16 +61,18 @@ class Socketeer {
     public subscribe(channel: string) {
         this.connect();
         this.log.debug("subscribing to " + channel);
+        this.subscriptions[channel] = undefined;
         this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
     }
 
     public unsubscribe(channel: string) {
         this.log.debug("unsubscribing from " + channel);
+        delete this.subscriptions[channel];
         this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel}));
     }
 
     private onConnect() {
-        for (var channel in this.handlers) {
+        for (var channel in this.subscriptions) {
             this.socket.send(JSON.stringify({command: "subscribe", channel: channel}));
         }
     }
