@@ -1,6 +1,3 @@
-import _ = require("underscore");
-
-
 export interface TODOReplaceThisWithLibLogger {
     debug: any;
     info: any;
@@ -23,7 +20,6 @@ export class ClingyWebSocket {
     private socket: any;
     private lastContactAt: number;
     private timeoutInterval: number;
-    private pendingMessages: string[];
 
     public onopen: (event: Event) => void;
     public onclose: (event: CloseEvent) => void;
@@ -33,8 +29,6 @@ export class ClingyWebSocket {
         this.maker = options.maker;
         this.log = options.log;
         this.timeout = options.timeout || 60 * 1000;
-
-        this.pendingMessages = [];
 
         this.active = true;
         this.connect();
@@ -48,10 +42,7 @@ export class ClingyWebSocket {
     }
 
     public send(message: string) {
-        if (this.socket.readyState === WebSocket.OPEN)
-            this.socket.send(message);
-        else
-            this.pendingMessages.push(message);
+        this.socket.send(message);
     }
 
     private connect() {
@@ -80,10 +71,6 @@ export class ClingyWebSocket {
     private onOpen = (event: Event) => {
         if (this.log)
             this.log.debug("connected");
-        _.each(this.pendingMessages, message => {
-            this.socket.send(message);
-        });
-        this.pendingMessages = [];
         if (this.onopen)
             this.onopen(event);
     };
