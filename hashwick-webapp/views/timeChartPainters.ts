@@ -128,11 +128,12 @@ class CandlestickPainter implements TemporalDataPainter<number> {
             if (this.vwap === "line") {
                 var yv = Math.round(yScale(candle.vwap));
                 path = "M" + x1 + "," + yv + "," + x3 + "," + yv;
-                vwapElement = g.append("path").attr({class: "candlestick " + dirClass, d: path});
+                vwapElement = g.append("path").attr({class: "peg " + dirClass, d: path});
             } else if (this.vwap === "circle") {
                 var yv = Math.round(yScale(candle.vwap));
-                var r = x2 - x1 <= 2 ? 2 : (x2 - x1) / 3;
-                vwapElement = g.append("circle").attr({class: "candlestick " + dirClass, cx: x2, cy: yv, r: r});
+                var r = Math.ceil(x2 - x1 <= 2 ? 1 : (x2 - x1) / 3);
+                vwapElement = g.append("circle")
+                    .attr({class: "peg " + dirClass, cx: x2, cy: yv, r: r});
             }
 
             if (vwapElement && this.vwapOpacitize)
