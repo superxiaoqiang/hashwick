@@ -209,22 +209,42 @@ export class RealtimeTrades extends interfaces.TradesDataSource {
 }
 
 
+class CallerQueue<T> {
+    private items: T[] = [];
+
+    constructor(private runner: (obj: any) => void) { }
+
+    public queue(obj: T) {
+        this.items.push(obj);
+    }
+
+    public runOne() {
+        var next = this.items.shift();
+        if (next)
+            this.runner(next);
+    }
+}
+
+
 export class HistoricalTrades extends interfaces.TradesDataSource implements RealtimeMixin {
     private marketID: string;
     private log: Logger;
     private items: RangeCache<number, Trade>;
     private channel: Channel;
     private pendingPromise = new PendingPromise<void>();
-    private prefetchQueue: any[] = [];
+    private prefetchQueue: CallerQueue<any>;
 
     constructor(marketID: string) {
         super();
         mixin.apply(this, new RealtimeMixin());
+
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
         this.items = new RangeCache<number, Trade>(
             this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
+        this.prefetchQueue = new CallerQueue<any>(this.runQueuedPrefetch.bind(this));
+
         this.channel = socketeer.register("trades:" + this.marketID);
         this.channel.onOpen = this.open.bind(this);
         this.channel.onMessage = this.message.bind(this);
@@ -232,17 +252,21 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
 
     public prefetch(earliest: Date, latest: Date) {
         this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
-        return this.items.prefetch(earliest.getTime(), latest.getTime());
+        this.prefetchQueue.queue([earliest, latest]);
+        if (!this.pendingPromise.isPending() && socketeer.getReadyState() === WebSocket.OPEN)
+            this.prefetchQueue.runOne();
+        return this.pendingPromise.promise();
+    }
+
+    private runQueuedPrefetch(obj: any) {
+        this.items.prefetch(obj[0].getTime(), obj[1].getTime());
     }
 
     private doRequest(earliest: number, latest: number) {
         this.log.trace("requsting " + new Date(earliest).toISOString() +
             " to " + new Date(latest).toISOString());
-        var obj = {marketID: this.marketID, earliest: earliest / 1000, latest: latest / 1000};
-        if (socketeer.getReadyState() === WebSocket.OPEN)
-            socketeer.send("getTrades", obj);
-        else
-            this.prefetchQueue.push(obj);
+        socketeer.send("getTrades",
+            {marketID: this.marketID, earliest: earliest / 1000, latest: latest / 1000});
         return this.pendingPromise.promise();
     }
 
@@ -251,11 +275,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
     }
 
     private open() {
-        // TODO: this is very naive, maybe it should coalesce ranges or something?
-        _.each(this.prefetchQueue, obj => {
-            socketeer.send("getTrades", obj);
-        });
-        this.requestQueue = [];
+        this.prefetchQueue.runOne();
     }
 
     private message(message: any) {
