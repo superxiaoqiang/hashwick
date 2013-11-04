@@ -169,6 +169,8 @@ class DepthChartView implements View {
     private findSmallestish<T>(xs: T[], keyer: (x: T) => number,
                                minResults: number, leeway: number, threshold: number) {
         var ret = _.sortBy(xs, keyer);
+        if (ret.length <= minResults)
+            return ret;
         threshold = Math.max(-threshold, keyer(ret[minResults - 1]) * leeway);
         for (var xi = minResults, xlen = xs.length; xi < xlen; ++xi) {
             var x = ret[xi];
