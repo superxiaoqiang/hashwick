@@ -60,6 +60,7 @@ class CandlestickPainter implements TemporalDataPainter<number> {
     private dataSource: OHLCVDataSource;
     private sparse: boolean;
     private vwap: string;
+    private vwapOpacitize: boolean;
 
     public static deserialize(structure: SerializedCandlestickPainter, dataSource: OHLCVDataSource) {
         var ret = new CandlestickPainter(dataSource);
@@ -83,7 +84,8 @@ class CandlestickPainter implements TemporalDataPainter<number> {
     public predraw(xMin: Date, xMax: Date) {
         var candles = this.dataSource.getFromMemory(xMin, xMax).data;
         var range = ohlcv.calcCandlesRange(candles);
-        return {range: range, data: candles};
+        var volumeMax = _.reduce(candles, (max, c) => c.volume > max ? c.volume : max, 0);
+        return {range: range, data: candles, volumeMax: volumeMax};
     }
 
     public draw(width: number, height: number, xMin: Date, xMax: Date, yMin: number, yMax: number, predraw: Predraw<number>) {
@@ -122,15 +124,19 @@ class CandlestickPainter implements TemporalDataPainter<number> {
             }
             g.append("path").attr({class: "candlestick " + dirClass + " " + fillClass, d: path});
 
+            var vwapElement: D3.Selection;
             if (this.vwap === "line") {
                 var yv = Math.round(yScale(candle.vwap));
                 path = "M" + x1 + "," + yv + "," + x3 + "," + yv;
-                g.append("path").attr({class: "candlestick " + dirClass, d: path});
+                vwapElement = g.append("path").attr({class: "candlestick " + dirClass, d: path});
             } else if (this.vwap === "circle") {
                 var yv = Math.round(yScale(candle.vwap));
                 var r = x2 - x1 <= 2 ? 2 : (x2 - x1) / 3;
-                g.append("circle").attr({class: "candlestick " + dirClass, cx: x2, cy: yv, r: r});
+                vwapElement = g.append("circle").attr({class: "candlestick " + dirClass, cx: x2, cy: yv, r: r});
             }
+
+            if (vwapElement && this.vwapOpacitize)
+                vwapElement.attr("opacity", candle.volume / (<any>predraw).volumeMax);
         }
 
         return g;
