@@ -59,6 +59,8 @@ export class RangeCache<T, V> {
     }
 
     public mergeItems(newItems: V[]) {
+        if (!newItems)
+            return;
         this.items = compsci.rangeMerge([this.items, newItems], this.sortKey, this.uniqueKey);
         if (this.items.length) {
             this.firstKey = this.sortKey(this.items[0]);

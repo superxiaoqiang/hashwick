@@ -212,7 +212,7 @@ export class RealtimeTrades extends interfaces.TradesDataSource {
 export class HistoricalTrades extends interfaces.TradesDataSource implements RealtimeMixin {
     private marketID: string;
     private log: Logger;
-    private items: RangeCache<Date, Trade>;
+    private items: RangeCache<number, Trade>;
     private channel: Channel;
     private pendingPromise = new PendingPromise<void>();
     private prefetchQueue: any[] = [];
@@ -222,8 +222,8 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
         mixin.apply(this, new RealtimeMixin());
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
-        this.items = new RangeCache<Date, Trade>(
-            this.format.sortKey, this.format.uniqueKey, this.prefetch.bind(this));
+        this.items = new RangeCache<number, Trade>(
+            this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
         this.channel = socketeer.register("trades:" + this.marketID);
         this.channel.onOpen = this.open.bind(this);
@@ -232,8 +232,13 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
 
     public prefetch(earliest: Date, latest: Date) {
         this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
-        var obj = {marketID: this.marketID,
-            earliest: earliest.getTime() / 1000, latest: latest.getTime() / 1000};
+        return this.items.prefetch(earliest.getTime(), latest.getTime());
+    }
+
+    private doRequest(earliest: number, latest: number) {
+        this.log.trace("requsting " + new Date(earliest).toISOString() +
+            " to " + new Date(latest).toISOString());
+        var obj = {marketID: this.marketID, earliest: earliest / 1000, latest: latest / 1000};
         if (socketeer.getReadyState() === WebSocket.OPEN)
             socketeer.send("getTrades", obj);
         else
@@ -242,7 +247,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
     }
 
     public getFromMemory(earliest: Date, latest: Date) {
-        return new TemporalData(this.items.getFromMemory(earliest, latest));
+        return new TemporalData(this.items.getFromMemory(earliest.getTime(), latest.getTime()));
     }
 
     private open() {
@@ -250,7 +255,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
         _.each(this.prefetchQueue, obj => {
             socketeer.send("getTrades", obj);
         });
-        this.prefetchQueue = [];
+        this.requestQueue = [];
     }
 
     private message(message: any) {
