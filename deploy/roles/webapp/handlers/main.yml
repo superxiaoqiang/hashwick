@@ -1,0 +1,9 @@
+---
+- name: restart circus
+  service: name=circus state=restarted
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+
+- name: restart hashwick-server
+  shell: circusctl reload hashwick-server

@@ -11,3 +11,9 @@
   vars_files: roles/packrat/vars/secrets.yml
   roles:
     - packrat
+
+- hosts:
+    - webapp
+  vars_files: roles/webapp/vars/secrets.yml
+  roles:
+    - webapp
