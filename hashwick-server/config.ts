@@ -1,2 +1,2 @@
-var config = require("./config." + (process.env.NODE_ENV || "development"));
+var config = require("./config." + (process.env.NODE_ENV || "production"));
 export = config;
