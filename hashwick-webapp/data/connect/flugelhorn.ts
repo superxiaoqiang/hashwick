@@ -209,30 +209,13 @@ export class RealtimeTrades extends interfaces.TradesDataSource {
 }
 
 
-class CallerQueue<T> {
-    private items: T[] = [];
-
-    constructor(private runner: (obj: any) => void) { }
-
-    public queue(obj: T) {
-        this.items.push(obj);
-    }
-
-    public runOne() {
-        var next = this.items.shift();
-        if (next)
-            this.runner(next);
-    }
-}
-
-
 export class HistoricalTrades extends interfaces.TradesDataSource implements RealtimeMixin {
     private marketID: string;
     private log: Logger;
     private items: RangeCache<number, Trade>;
     private channel: Channel;
     private pendingPromise = new PendingPromise<void>();
-    private prefetchQueue: CallerQueue<any>;
+    private prefetchQueue: any[] = [];
 
     constructor(marketID: string) {
         super();
@@ -243,7 +226,6 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
         this.items = new RangeCache<number, Trade>(
             this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
-        this.prefetchQueue = new CallerQueue<any>(this.runQueuedPrefetch.bind(this));
 
         this.channel = socketeer.register("trades:" + this.marketID);
         this.channel.onOpen = this.open.bind(this);
@@ -252,14 +234,16 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
 
     public prefetch(earliest: Date, latest: Date) {
         this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
-        this.prefetchQueue.queue([earliest, latest]);
+        this.prefetchQueue.push([earliest, latest]);
         if (!this.pendingPromise.isPending() && socketeer.getReadyState() === WebSocket.OPEN)
-            this.prefetchQueue.runOne();
+            this.prefetchDequeue();
         return this.pendingPromise.promise();
     }
 
-    private runQueuedPrefetch(obj: any) {
-        this.items.prefetch(obj[0].getTime(), obj[1].getTime());
+    private prefetchDequeue() {
+        var next = this.prefetchQueue.shift();
+        if (next)
+            this.items.prefetch(next[0].getTime(), next[1].getTime());
     }
 
     private doRequest(earliest: number, latest: number) {
@@ -275,7 +259,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
     }
 
     private open() {
-        this.prefetchQueue.runOne();
+        this.prefetchDequeue();
     }
 
     private message(message: any) {
