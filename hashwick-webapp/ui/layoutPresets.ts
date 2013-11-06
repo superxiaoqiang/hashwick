@@ -8,7 +8,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     layout: {
         markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
         dataSources: [
-            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
             {key: "depth", name: "depth", item: {type: "marketLiveDepth", market: {key: "0"}}},
             {key: "ticker", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
             {key: "trades", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
@@ -32,7 +32,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                     heightWeight: 10,
                                     series: [{
                                         dataSource: {key: "ohlcv"},
-                                        painter: {type: "candlestick"},
+                                        painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }],
                             },
@@ -89,11 +89,11 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
             {type: "market.exchange", key: "1"},
         ],
         dataSources: [
-            {key: "ohlcv0", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv0", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
             {key: "ticker0", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
             {key: "trades0", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
             {key: "ticks0", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades0"}}},
-            {key: "ohlcv1", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "1"}, period: 15 * 60}},
+            {key: "ohlcv1", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "1"}}},
             {key: "ticker1", name: "ticker", item: {type: "marketLiveTicker", market: {key: "1"}}},
             {key: "trades1", name: "trades", item: {type: "marketTrades", market: {key: "1"}}},
             {key: "ticks1", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades1"}}},
@@ -110,13 +110,13 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                             heightWeight: 20,
                             series: [{
                                 dataSource: {key: "ohlcv0"},
-                                painter: {type: "candlestick"},
+                                painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }, {
                             heightWeight: 20,
                             series: [{
                                 dataSource: {key: "ohlcv1"},
-                                painter: {type: "candlestick"},
+                                painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }],
                     },
@@ -163,17 +163,17 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
             {type: "market.exchange", key: "2"},
         ],
         dataSources: [
-            {key: "ohlcv0", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv0", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
             {key: "depth0", name: "depth", item: {type: "marketLiveDepth", market: {key: "0"}}},
             {key: "ticker0", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
             {key: "trades0", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
             {key: "ticks0", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades0"}}},
-            {key: "ohlcv1", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "1"}, period: 15 * 60}},
+            {key: "ohlcv1", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "1"}}},
             {key: "depth1", name: "depth", item: {type: "marketLiveDepth", market: {key: "1"}}},
             {key: "ticker1", name: "ticker", item: {type: "marketLiveTicker", market: {key: "1"}}},
             {key: "trades1", name: "trades", item: {type: "marketTrades", market: {key: "1"}}},
             {key: "ticks1", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades1"}}},
-            {key: "ohlcv2", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "2"}, period: 15 * 60}},
+            {key: "ohlcv2", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "2"}}},
             {key: "depth2", name: "depth", item: {type: "marketLiveDepth", market: {key: "2"}}},
             {key: "ticker2", name: "ticker", item: {type: "marketLiveTicker", market: {key: "2"}}},
             {key: "trades2", name: "trades", item: {type: "marketTrades", market: {key: "2"}}},
@@ -194,19 +194,19 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                     heightWeight: 20,
                                     series: [{
                                         dataSource: {key: "ohlcv0"},
-                                        painter: {type: "candlestick"},
+                                        painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }, {
                                     heightWeight: 20,
                                     series: [{
                                         dataSource: {key: "ohlcv1"},
-                                        painter: {type: "candlestick"},
+                                        painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }, {
                                     heightWeight: 20,
                                     series: [{
                                         dataSource: {key: "ohlcv2"},
-                                        painter: {type: "candlestick"},
+                                        painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }],
                             },
@@ -333,7 +333,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
             {type: "market.exchange", key: "0"},
         ],
         dataSources: [
-            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
             {key: "ticker", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
             {key: "trades", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
             {key: "ticks", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades"}}},
@@ -350,13 +350,13 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                             heightWeight: 15,
                             series: [{
                                 dataSource: {key: "ohlcv"},
-                                painter: {type: "candlestick"},
+                                painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }, {
                             heightWeight: 5,
                             series: [{
                                 dataSource: {key: "ohlcv"},
-                                painter: {type: "volumeBars"},
+                                painter: {type: "volumeBars", period: 15 * 60},
                             }],
                         }],
                     },
@@ -394,7 +394,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     layout: {
         markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
         dataSources: [
-            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
         ],
         knobs: [
             {type: "market.exchange", key: "0"},
@@ -408,7 +408,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                     heightWeight: 20,
                     series: [{
                         dataSource: {key: "ohlcv"},
-                        painter: {type: "candlestick"},
+                        painter: {type: "candlestick", period: 15 * 60},
                     }],
                 }],
             },
@@ -419,7 +419,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     layout: {
         markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
         dataSources: [
-            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}, period: 15 * 60}},
+            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
         ],
         knobs: [
             {type: "market.exchange", key: "0"},
@@ -436,7 +436,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                             heightWeight: 20,
                             series: [{
                                 dataSource: {key: "ohlcv"},
-                                painter: {type: "candlestick"},
+                                painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }],
                     },

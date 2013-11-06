@@ -1,4 +1,3 @@
-import CandleResampler = require("../../lib/calc/candleResampler");
 import logger_ = require("../logger");
 if (0) logger_;
 import Logger = logger_.Logger;
@@ -161,14 +160,12 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
 
     public static deserialize(context: DeserializationContext, structure: SerializedMarketOHLCVDataSource) {
         var market = context.unsealMarket(structure.market);
-        var period = structure.period;
-        return new this(market, period);
+        return new this(market);
     }
 
-    constructor(market: Capsule<Market>, period: number) {
+    constructor(market: Capsule<Market>) {
         super();
         this.market = market;
-        this.period = period;
 
         this.log = new Logger("data.marketData.MarketOHLCVDataSource:" + market.item.cacheKey());
 
@@ -183,7 +180,6 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
         return {
             type: MarketOHLCVDataSource.type,
             market: context.sealMarket(this.market),
-            period: this.period,
         };
     }
 
@@ -201,27 +197,18 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
         this.dataStack.unwantRealtime();
     }
 
-    public getFromMemory(earliest: Date, latest: Date): TemporalData<Candle> {
-        var data = this.dataStack.getFromMemory(earliest, latest);
-
-        var resampler = new CandleResampler(this.period);
-        var ret: Candle[] = [];
-        resampler.onCandle = ret.push.bind(ret);
-        _.each(data.data, resampler.feedCandle.bind(resampler));
-        resampler.sendIncompleteCandle();
-
-        return new TemporalData<Candle>(ret);
+    public getFromMemory(earliest: Date, latest: Date, period: number) {
+        return this.dataStack.getFromMemory(earliest, latest, period);
     }
 
-    public prefetch(earliest: Date, latest: Date) {
+    public prefetch(earliest: Date, latest: Date, period: number) {
         this.log.trace("prefetch " + earliest.toISOString() + " to " + latest.toISOString());
-        return this.dataStack.prefetch(earliest, latest);
+        return this.dataStack.prefetch(earliest, latest, period);
     }
 }
 
 interface SerializedMarketOHLCVDataSource extends interfaces.SerializedDataSource {
     market: CapsuleRef<SerializedMarket>;
-    period: number;
 }
 
 

@@ -58,31 +58,36 @@ class CandlestickPainter implements TemporalDataPainter<number> {
     public static expectedFormat = formats.ohlcvDataFormat;
 
     private dataSource: OHLCVDataSource;
+    private period: number;
     private sparse: boolean;
     private vwap: string;
     private vwapOpacitize: boolean;
 
     public static deserialize(structure: SerializedCandlestickPainter, dataSource: OHLCVDataSource) {
-        var ret = new CandlestickPainter(dataSource);
+        var ret = new CandlestickPainter(dataSource, structure.period);
         return ret;
     }
 
-    constructor(dataSource: OHLCVDataSource) {
+    constructor(dataSource: OHLCVDataSource, period: number) {
         this.dataSource = dataSource;
+        this.period = period;
     }
 
     public serialize(): SerializedCandlestickPainter {
-        return {type: CandlestickPainter.type};
+        return {
+            type: CandlestickPainter.type,
+            period: this.period,
+        };
     }
 
     public adjustDomain(domain: MinMaxPair<Date>): MinMaxPair<Date> {
         return new MinMaxPair(
-            time.roundDate(domain.min, this.dataSource.period, Math.ceil),
-            time.roundDate(domain.max, this.dataSource.period, Math.ceil));
+            time.roundDate(domain.min, this.period, Math.ceil),
+            time.roundDate(domain.max, this.period, Math.ceil));
     }
 
     public predraw(xMin: Date, xMax: Date) {
-        var candles = this.dataSource.getFromMemory(xMin, xMax).data;
+        var candles = this.dataSource.getFromMemory(xMin, xMax, this.period).data;
         var range = ohlcv.calcCandlesRange(candles);
         var volumeMax = _.reduce(candles, (max, c) => c.volume > max ? c.volume : max, 0);
         return {range: range, data: candles, volumeMax: volumeMax};
@@ -144,7 +149,9 @@ class CandlestickPainter implements TemporalDataPainter<number> {
     }
 }
 
-interface SerializedCandlestickPainter extends SerializedDataPainter { }
+interface SerializedCandlestickPainter extends SerializedDataPainter {
+    period: number;
+}
 
 dataPainterClasses[CandlestickPainter.type] = CandlestickPainter;
 
@@ -154,29 +161,34 @@ class VolumeBarsPainter implements TemporalDataPainter<number> {
     public static expectedFormat = formats.ohlcvDataFormat;
 
     private dataSource: OHLCVDataSource;
+    private period: number;
 
     public static deserialize(structure: SerializedVolumeBarsPainter, dataSource: OHLCVDataSource) {
-        var ret = new this(dataSource);
+        var ret = new this(dataSource, structure.period);
         return ret;
     }
 
-    constructor(dataSource: OHLCVDataSource) {
+    constructor(dataSource: OHLCVDataSource, period: number) {
         this.dataSource = dataSource;
+        this.period = period;
     }
 
     public serialize(): SerializedVolumeBarsPainter {
-        return {type: VolumeBarsPainter.type};
+        return {
+            type: VolumeBarsPainter.type,
+            period: this.period,
+        };
     }
 
     public adjustDomain(domain: MinMaxPair<Date>): MinMaxPair<Date> {
         return new MinMaxPair(
-            time.roundDate(domain.min, this.dataSource.period, Math.ceil),
-            time.roundDate(domain.max, this.dataSource.period, Math.ceil));
+            time.roundDate(domain.min, this.period, Math.ceil),
+            time.roundDate(domain.max, this.period, Math.ceil));
     }
 
     public predraw(xMin: Date, xMax: Date) {
-        var candles = this.dataSource.getFromMemory(xMin, xMax).data;
-        var max = _.reduce<Candle, number>(candles, (max, candle) => candle.volume > max ? candle.volume : max, 0);
+        var candles = this.dataSource.getFromMemory(xMin, xMax, this.period).data;
+        var max = _.reduce<Candle, number>(candles, (max, c) => c.volume > max ? c.volume : max, 0);
         var range: MinMaxPair<number> = new MinMaxPair(0, max);
         return {range: range, data: candles};
     }
@@ -206,6 +218,8 @@ class VolumeBarsPainter implements TemporalDataPainter<number> {
     }
 }
 
-interface SerializedVolumeBarsPainter extends SerializedDataPainter { }
+interface SerializedVolumeBarsPainter extends SerializedDataPainter {
+    period: number;
+}
 
 dataPainterClasses[VolumeBarsPainter.type] = VolumeBarsPainter;

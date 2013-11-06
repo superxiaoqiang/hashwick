@@ -90,7 +90,7 @@ function makeMarket(exchange: Exchange, structure: any) {
     }, structure);
     ret.ohlcvDataSources.push({
         source: new calc.TradesToCandlesDataSource(
-            new marketData.MarketTradesDataSource({key: null, name: null, item: ret}), 60),
+            new marketData.MarketTradesDataSource({key: null, name: null, item: ret})),
         role: "partial",
     });
     return ret;

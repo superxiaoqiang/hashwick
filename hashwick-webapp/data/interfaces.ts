@@ -60,6 +60,19 @@ export class TemporalDataSource<T> extends DataSource {
 }
 
 
+export class PeriodicTemporalDataSource<T> extends DataSource {
+    public format: formats.TemporalDataFormat<T>;
+
+    public getFromMemory(earliest: Date, latest: Date, period: number): models.TemporalData<T> {
+        throw 0;
+    }
+
+    public prefetch(earliest: Date, latest: Date, period: number): JQueryGenericPromise<void> {
+        return $.Deferred().resolve();
+    }
+}
+
+
 export class LiveTickerDataSource extends SnapshotDataSource<models.Ticker> {
     public format = {};
 }
@@ -76,7 +89,6 @@ export class TradesDataSource extends TemporalDataSource<models.Trade> {
     public format = formats.tradesDataFormat;
 }
 
-export class OHLCVDataSource extends TemporalDataSource<models.Candle> {
+export class OHLCVDataSource extends PeriodicTemporalDataSource<models.Candle> {
     public format = formats.ohlcvDataFormat;
-    public period: number;
 }

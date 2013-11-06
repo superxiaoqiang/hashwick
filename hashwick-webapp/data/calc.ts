@@ -100,11 +100,10 @@ serialization.dataSourceClasses[TradesToTicksDataSource.type] = TradesToTicksDat
 export class TradesToCandlesDataSource extends OHLCVDataSource {
     private trades: TradesDataSource;
 
-    constructor(tradesDataSource: TradesDataSource, period: number) {
+    constructor(tradesDataSource: TradesDataSource) {
         super();
         this.trades = tradesDataSource;
         this.trades.gotData.attach(this.gotData.emit.bind(this.gotData));
-        this.period = period;
     }
 
     public wantRealtime() {
@@ -115,17 +114,19 @@ export class TradesToCandlesDataSource extends OHLCVDataSource {
         this.trades.unwantRealtime();
     }
 
-    public getFromMemory(earliest: Date, latest: Date) {
+    public getFromMemory(earliest: Date, latest: Date, period: number) {
         var trades = this.trades.getFromMemory(earliest, latest);
+
         var candles: Candle[] = [];
-        var builder = new CandleBuilder(this.period);
+        var builder = new CandleBuilder(period);
         builder.onCandle = candles.push.bind(candles);
         _.each(trades.data, builder.feedTrade.bind(builder));
         builder.sendIncompleteCandle();
+
         return new TemporalData<Candle>(candles);
     }
 
-    public prefetch(earliest: Date, latest: Date) {
+    public prefetch(earliest: Date, latest: Date, period: number) {
         return this.trades.prefetch(earliest, latest);
     }
 }

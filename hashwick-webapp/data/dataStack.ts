@@ -86,9 +86,9 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
         });
     }
 
-    private getLatestTimestampFromSources(infos: TemporalDataStackSourceInfo<T>[], earliest: Date, latest: Date) {
+    private getLatestTimestampFromSources(infos: TemporalDataStackSourceInfo<T>[], ...args: any[]) {
         return _.reduce(infos, (acc, info) => {
-            var result = info.source.getFromMemory(earliest, latest);
+            var result = info.source.getFromMemory.apply(info.source, args);
             var candidate = result.data.length
                 ? info.source.format.extractTimestamp(result.data[result.data.length - 1])
                 : undefined;
@@ -103,33 +103,34 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
         }, earliest);
     }
 
-    public getFromMemory(earliest: Date, latest: Date) {
-        var sets = _.map(_.where(this.infos, {role: "historical"}), info => {
-            return info.source.getFromMemory(earliest, latest);
-        });
+    public getFromMemory(earliest: Date, latest: Date, ...args: any[]) {
+        var getter = (info: TemporalDataStackSourceInfo<T>) => {
+            return info.source.getFromMemory.apply(info.source, [earliest, latest].concat(args));
+        };
+
+        var sets = _.map(_.where(this.infos, {role: "historical"}), getter);
         var historicalLatest = this.getLatestTimestampFromDataSets(sets, earliest);
         earliest = historicalLatest || earliest;
-        sets = sets.concat(_.map(_.where(this.infos, {role: "partial"}), info => {
-            return info.source.getFromMemory(earliest, latest);
-        })).concat(_.map(_.where(this.infos, {role: "realtime"}), info => {
-            return info.source.getFromMemory(earliest, latest);
-        }));
+        sets = sets
+            .concat(_.map(_.where(this.infos, {role: "partial"}), getter))
+            .concat(_.map(_.where(this.infos, {role: "realtime"}), getter));
         return this.format.combineDataSets(sets);
     }
 
-    public prefetch(earliest: Date, latest: Date) {
-        return promise.tolerantWhen<void>(_.map(_.where(this.infos, {role: "historical"}), info => {
-            return info.source.prefetch(earliest, latest);
-        })).then<void>(() => {
-            var historicalLatest = this.getLatestTimestampFromSources(
-                _.where(this.infos, {role: "historical"}), earliest, latest);
-            earliest = historicalLatest || earliest;
-            // TODO: omit realtime from prefetch after fixing flugelhorn!
-            var theRest = _.where(this.infos, {role: "partial"}).concat(_.where(this.infos, {role: "realtime"}));
-            return promise.tolerantWhen<void>(_.map(theRest, info => {
-                return info.source.prefetch(earliest, latest);
-            }));
-        });
+    public prefetch(earliest: Date, latest: Date, ...args: any[]) {
+        var prefetcher = (info: TemporalDataStackSourceInfo<T>) => {
+            return info.source.prefetch.apply(info.source, [earliest, latest].concat(args));
+        };
+
+        return promise.tolerantWhen<void>(_.map(_.where(this.infos, {role: "historical"}), prefetcher))
+            .then<void>(() => {
+                var historicalLatest = this.getLatestTimestampFromSources(
+                    _.where(this.infos, {role: "historical"}), earliest, latest);
+                earliest = historicalLatest || earliest;
+                // TODO: omit realtime from prefetch after fixing flugelhorn!
+                var theRest = _.where(this.infos, {role: "partial"}).concat(_.where(this.infos, {role: "realtime"}));
+                return promise.tolerantWhen<void>(_.map(theRest, prefetcher));
+            });
     }
 }
 
