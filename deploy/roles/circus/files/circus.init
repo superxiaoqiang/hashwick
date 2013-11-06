@@ -1,0 +1,35 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:             circus
+# Default-Start:        2 3 4 5
+# Default-Stop:	        0 1 6
+# Short-Description:    circus
+### END INIT INFO
+
+NAME=circus
+EXEC=/usr/local/bin/circusd
+PIDFILE=/var/run/circusd.pid
+OPTS="--daemon --log-output /var/log/circus.log --pidfile $PIDFILE /etc/circus.ini"
+
+. /lib/lsb/init-functions
+set +e
+test -x "$EXEC"
+
+case "$1" in
+start)
+    start-stop-daemon --pidfile "$PIDFILE" --start --exec "$EXEC" -- $OPTS
+    ;;
+stop)
+    start-stop-daemon --pidfile "$PIDFILE" --stop --retry 10
+    ;;
+restart)
+    "$0" stop
+    "$0" start
+    ;;
+status)
+    status_of_proc -p "$PIDFILE" "$EXEC" "$NAME"
+    ;;
+*)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+esac

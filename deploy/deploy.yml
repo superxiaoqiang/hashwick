@@ -1,0 +1,13 @@
+---
+- hosts:
+    - packrat
+    - webapp
+  roles:
+    - common
+    - circus
+
+- hosts:
+    - packrat
+  vars_files: roles/packrat/vars/secrets.yml
+  roles:
+    - packrat

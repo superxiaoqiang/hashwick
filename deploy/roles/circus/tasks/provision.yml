@@ -1,0 +1,12 @@
+---
+- name: pip packages
+  pip: name={{ item }} state=latest
+  with_items:
+    - circus
+    - circus-web
+
+- name: circus init script
+  copy: src=circus.init dest=/etc/init.d/circus mode=0755
+
+- name: start circusd
+  service: name=circus state=started

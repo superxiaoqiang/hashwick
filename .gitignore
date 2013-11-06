@@ -14,8 +14,6 @@ results
 npm-debug.log
 node_modules
 
-.sass-cache/
-
 config.*.json
 !config.example.json
 
@@ -23,3 +21,5 @@ config.*.json
 *.js
 
 /hashwick-server/static/compiled/
+
+secrets.yml
