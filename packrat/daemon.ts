@@ -86,4 +86,10 @@ function setupPeriodicJobs(db: database.Database) {
             })
         }, timespan * 1000);
     });
+
+    setInterval(() => {
+        _.each(markets.all, market => {
+            aggregate.cleanOldDepth(db, market);
+        })
+    }, 15 * 60 * 1000);
 }

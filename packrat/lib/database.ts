@@ -100,6 +100,11 @@ export class Database {
             [market_id, timestamp, flags, order.price, order.amount]);
     }
 
+    public delete_depth_snapshots_before_timestamp(market_id: number, timestamp: Date) {
+        return this.query("DELETE FROM depthsnapshotorder WHERE market_id = $1 AND timestamp < $2",
+            [market_id, timestamp]);
+    }
+
     public upsert_candle(market_id: number, candle: Candle) {
         return sql.upsert(this.db, "candle",
             {market_id: market_id, timespan: candle.timespan, start: candle.start},
