@@ -82,7 +82,9 @@ class ViewContext implements ViewUIContext {
     }
 
     addButton(text: string) {
-        return $("<li>").text(text).appendTo(this.pane.headerMenuElement);
+        return $("<li>")
+            .append($('<a href="#"></a>').text(text))
+            .appendTo(this.pane.headerMenuElement);
     }
 }
 

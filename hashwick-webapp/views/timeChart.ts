@@ -106,6 +106,8 @@ class ChartView implements View {
                 this.clearPlots();
                 this.setPlots(context2, plots);
                 this.redraw();
+
+                event.preventDefault();
             });
         });
     }
