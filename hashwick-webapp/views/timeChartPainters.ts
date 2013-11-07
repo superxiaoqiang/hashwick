@@ -142,7 +142,7 @@ class CandlestickPainter implements TemporalDataPainter<number> {
             }
 
             if (vwapElement && this.vwapOpacitize)
-                vwapElement.attr("opacity", candle.volume / (<any>predraw).volumeMax);
+                vwapElement.attr("opacity", Math.sqrt(candle.volume / (<any>predraw).volumeMax));
         }
 
         return g;
