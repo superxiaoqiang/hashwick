@@ -21,7 +21,7 @@ class RequestHandler {
     private getTrades(socket: any, data: any) {
         var pending: any[] = [];
         var flush = () => {
-            this.server.sendToOne(socket, "trades:" + data.marketID, {trades: pending});
+            this.server.sendToOne(socket, "getTrades:" + data.marketID, {trades: pending});
             pending = [];
         };
 

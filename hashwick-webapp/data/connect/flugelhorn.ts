@@ -122,7 +122,27 @@ class Channel {
 var socketeer = new Socketeer();
 
 
-class RealtimeMixin {
+class SimpleCountingRealtimeMixin {
+    private log: Logger;
+    private realtime: number;
+
+    constructor() {
+        this.realtime = 0;
+    }
+
+    public wantRealtime() {
+        ++this.realtime;
+        this.log.trace("realtime up to " + this.realtime);
+    }
+
+    public unwantRealtime() {
+        --this.realtime;
+        this.log.trace("realtime down to " + this.realtime);
+    }
+}
+
+
+class ChannelSubscriptionRealtimeMixin {
     private log: Logger;
     private channel: Channel;
     private realtime: number;
@@ -138,14 +158,14 @@ class RealtimeMixin {
     }
 
     public unwantRealtime() {
-        if (!-- this.realtime)
+        if (!--this.realtime)
             this.channel.unsubscribe();
         this.log.trace("realtime down to " + this.realtime);
     }
 }
 
 
-export class LiveTicker extends interfaces.LiveTickerDataSource implements RealtimeMixin {
+export class LiveTicker extends interfaces.LiveTickerDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
     private log: Logger;
     private data: SnapshotData<Ticker>;
@@ -155,7 +175,8 @@ export class LiveTicker extends interfaces.LiveTickerDataSource implements Realt
 
     constructor(marketID: string) {
         super();
-        mixin.apply(this, new RealtimeMixin());
+        mixin.apply(this, new ChannelSubscriptionRealtimeMixin());
+
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.LiveTicker:" + marketID);
         this.channel = socketeer.register("ticker:" + this.marketID);
@@ -192,24 +213,40 @@ export class LiveTicker extends interfaces.LiveTickerDataSource implements Realt
 }
 
 
-// TODO: evaluate whether or not this is useful or necessary
-export class RealtimeTrades extends interfaces.TradesDataSource {
+export class RealtimeTrades extends interfaces.TradesDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
     private log: Logger;
+    private items: RangeCache<number, Trade>;
+    private channel: Channel;
 
     constructor(marketID: string) {
         super();
+        mixin.apply(this, new ChannelSubscriptionRealtimeMixin());
+
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.RealtimeTrades:" + marketID);
+        this.items = new RangeCache<number, Trade>(
+            this.format.sortKey, this.format.uniqueKey, () => $.Deferred().resolve());
+        this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
+
+        this.channel = socketeer.register("trades:" + this.marketID);
+        this.channel.onMessage = this.message.bind(this);
     }
 
     public getFromMemory(earliest: Date, latest: Date) {
-        return new TemporalData([]);
+        return new TemporalData(this.items.getFromMemory(earliest.getTime(), latest.getTime()));
+    }
+
+    private message(message: any) {
+        var trades = _.map(message.data.trades, decodeTrade);
+        logTradesInfo(this.log, trades);
+        this.items.mergeItems(trades);
     }
 }
 
 
-export class HistoricalTrades extends interfaces.TradesDataSource implements RealtimeMixin {
+export class HistoricalTrades extends interfaces.TradesDataSource implements SimpleCountingRealtimeMixin {
+    private realtime: number;
     private marketID: string;
     private log: Logger;
     private items: RangeCache<number, Trade>;
@@ -219,7 +256,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
 
     constructor(marketID: string) {
         super();
-        mixin.apply(this, new RealtimeMixin());
+        mixin.apply(this, new SimpleCountingRealtimeMixin());
 
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.HistoricalTrades:" + marketID);
@@ -227,7 +264,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
             this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this));
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
 
-        this.channel = socketeer.register("trades:" + this.marketID);
+        this.channel = socketeer.register("getTrades:" + this.marketID);
         this.channel.onOpen = this.open.bind(this);
         this.channel.onMessage = this.message.bind(this);
     }
@@ -259,33 +296,26 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Rea
     }
 
     private open() {
+        if (this.realtime && (<any>this.items).items.length) {
+            // TODO: get rid of casts
+            var last = (<any>this.items).items[(<any>this.items).items.length - 1];
+            var timestamp = this.format.extractTimestamp(last);
+            this.log.info("regained connection, catching up on trades since " + timestamp);
+            this.prefetch(timestamp, time.serverNow());
+        }
         this.prefetchDequeue();
     }
 
     private message(message: any) {
         var trades = _.map(message.data.trades, decodeTrade);
-        this.logTradesInfo(trades);
+        logTradesInfo(this.log, trades);
         this.items.mergeItems(trades);
         this.pendingPromise.resolve();
-    }
-
-    private logTradesInfo(trades: Trade[]) {
-        var message = "got " + trades.length + " trades";
-        if (trades.length)
-            message += ", from " + trades[0].timestamp.toISOString() +
-                " to " + trades[trades.length - 1].timestamp.toISOString();
-        this.log.trace(message);
-
-        if (trades.length) {
-            var diff = trades[trades.length - 1].timestamp.getTime() - time.serverNow().getTime();
-            if (diff > 0)
-                this.log.info("last received trade is " + diff / 1000 + " sec in the future");
-        }
     }
 }
 
 
-export class LiveDepth extends interfaces.LiveDepthDataSource implements RealtimeMixin {
+export class LiveDepth extends interfaces.LiveDepthDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
     private log: Logger;
     private data: SnapshotData<DepthData>;
@@ -295,7 +325,8 @@ export class LiveDepth extends interfaces.LiveDepthDataSource implements Realtim
 
     constructor(marketID: string) {
         super();
-        mixin.apply(this, new RealtimeMixin());
+        mixin.apply(this, new ChannelSubscriptionRealtimeMixin());
+
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.LiveDepth:" + marketID);
         this.channel = socketeer.register("depth:" + this.marketID);
@@ -354,4 +385,18 @@ function decodeDepth(depth: any) {
 
 function decodeDepthItem(i: any) {
     return new DepthDataPoint(parseFloat(i.price), parseFloat(i.amount));
+}
+
+function logTradesInfo(log: Logger, trades: Trade[]) {
+    var message = "got " + trades.length + " trades";
+    if (trades.length)
+        message += ", from " + trades[0].timestamp.toISOString() +
+            " to " + trades[trades.length - 1].timestamp.toISOString();
+    log.trace(message);
+
+    if (trades.length) {
+        var diff = trades[trades.length - 1].timestamp.getTime() - time.serverNow().getTime();
+        if (diff > 0)
+            log.info("last received trade is " + diff / 1000 + " sec in the future");
+    }
 }
