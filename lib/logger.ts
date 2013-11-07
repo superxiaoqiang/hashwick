@@ -3,7 +3,7 @@ class Logger {
 
     private emit(level: number, message: string) {
         var when = new Date().toISOString().replace("T", " ").replace("Z", "");
-        var text = when + " [" + this.scope + "] " + message;
+        var text = when + " (" + level + ") [" + this.scope + "] " + message;
         console.log(text);
     }
 

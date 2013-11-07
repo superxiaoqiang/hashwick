@@ -1,11 +1,11 @@
 import Signal = require("../lib/signal");
 
 
-var TRACE = 2;
-var DEBUG = 3;
-var INFO = 5;
-var WARNING = 7;
-var ERROR = 8;
+var TRACE = 1;
+var DEBUG = 2;
+var INFO = 3;
+var WARNING = 4;
+var ERROR = 5;
 
 var browserLevel = 0;
 
@@ -32,7 +32,7 @@ export class Logger {
 
     private emit(level: number, message: string) {
         var timestamp = new Date();
-        var output = formatTimestamp(timestamp) + " [" + this.source + "] " + message;
+        var output = formatTimestamp(timestamp) + " (" + level + ") [" + this.source + "] " + message;
         if (level >= browserLevel)
             if (window.console)
                 console.log(output);
