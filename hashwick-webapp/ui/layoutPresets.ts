@@ -3,6 +3,25 @@ if (0) layoutDefs_;
 import LayoutPreset = layoutDefs_.LayoutPreset;
 
 
+var timeChartPresets = [{
+    name: "1h",
+    timespan: 2 * 24 * 60 * 60,
+    changes: {period: 60 * 60},
+}, {
+    name: "15m",
+    timespan: 12 * 60 * 60,
+    changes: {period: 15 * 60},
+}, {
+    name: "5m",
+    timespan: 4 * 60 * 60,
+    changes: {period: 5 * 60},
+}, {
+    name: "1m",
+    timespan: 1 * 60 * 60,
+    changes: {period: 1 * 60},
+}];
+
+
 export var builtinLayoutPresets: LayoutPreset[] = [{
     name: "Bitcoinity",
     layout: {
@@ -35,6 +54,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                         painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }],
+                                presets: timeChartPresets,
                             },
                         },
                         sizeWeight: 1,
@@ -119,6 +139,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                 painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }],
+                        presets: timeChartPresets,
                     },
                 },
                 sizeWeight: 4,
@@ -209,6 +230,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                         painter: {type: "candlestick", period: 15 * 60},
                                     }],
                                 }],
+                                presets: timeChartPresets,
                             },
                         },
                         sizeWeight: 2,
@@ -359,6 +381,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                 painter: {type: "volumeBars", period: 15 * 60},
                             }],
                         }],
+                        presets: timeChartPresets,
                     },
                 },
                 sizeWeight: 3,
@@ -411,6 +434,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                         painter: {type: "candlestick", period: 15 * 60},
                     }],
                 }],
+                presets: timeChartPresets,
             },
         },
     },
@@ -439,6 +463,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
                                 painter: {type: "candlestick", period: 15 * 60},
                             }],
                         }],
+                        presets: timeChartPresets,
                     },
                 },
                 sizeWeight: 2,

@@ -22,4 +22,5 @@ export interface SerializedView {
 
 export interface ViewUIContext {
     setTitle(text: string): void;
+    addButton(text: string): JQuery;
 }

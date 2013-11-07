@@ -35,6 +35,7 @@ class ViewPane implements Pane {
     private view: View;
     public paneElement: JQuery;
     private headerElement: JQuery;
+    public headerMenuElement: JQuery;
     public titleElement: JQuery;
     private bodyElement: JQuery;
 
@@ -45,6 +46,7 @@ class ViewPane implements Pane {
     constructor(context: context.DeserializationContext, structure: SerializedViewPane) {
         this.paneElement = $('<div class="pane"></div>')
             .append(this.headerElement = $('<div class="pane-header"></div>')
+                .append(this.headerMenuElement = $('<ul class="pane-buttons"></ul>'))
                 .append(this.titleElement = $('<div class="pane-title"></div>')))
             .append(this.bodyElement = $('<div class="pane-body"></div>'));
         var uiContext = new ViewContext(this);
@@ -77,6 +79,10 @@ class ViewContext implements ViewUIContext {
 
     setTitle(text: string) {
         this.pane.titleElement.text(text);
+    }
+
+    addButton(text: string) {
+        return $("<li>").text(text).appendTo(this.pane.headerMenuElement);
     }
 }
 

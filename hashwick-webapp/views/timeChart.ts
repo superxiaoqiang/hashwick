@@ -37,9 +37,11 @@ class ChartView implements View {
 
     public viewElement: JQuery;
     private log: Logger;
+    private uiContext: ViewUIContext;
     private svg: D3.Selection;
     private plots: Plot[];
     private timespan: number;
+    private presets: SerializedPreset[];
     private tickSize = 8;
 
     public static deserialize(context: DeserializationContext, structure: SerializedChartView,
@@ -47,10 +49,12 @@ class ChartView implements View {
         var ret = new ChartView(uiContext);
         ret.timespan = structure.timespan || 6 * 60 * 60;
         ret.setPlots(context, structure.plots);
+        ret.setPresets(structure.presets);
         return ret;
     }
 
     constructor(uiContext: ViewUIContext) {
+        this.uiContext = uiContext;
         uiContext.setTitle("Chart");
         this.viewElement = $('<div class="view"></div>');
         this.svg = d3.select(this.viewElement[0])
@@ -86,21 +90,32 @@ class ChartView implements View {
         });
     }
 
+    private setPresets(presets: SerializedPreset[]) {
+        this.presets = presets;
+        _.each(this.presets, preset => {
+            this.uiContext.addButton(preset.name).on("click", event => {
+                var context1 = new SerializationContext();
+                var plots = _.map(this.plots, plot => plot.serialize(context1));
+                _.each(plots, plot => {
+                    applyChangesToSerializedPlot(plot, preset.changes);
+                });
+
+                var context2 = new DeserializationContext(
+                    context1.marketCapsules, context1.dataSourceCapsules);
+                this.timespan = preset.timespan;
+                this.clearPlots();
+                this.setPlots(context2, plots);
+                this.redraw();
+            });
+        });
+    }
+
     public serialize(context: SerializationContext): SerializedChartView {
         return {
             type: ChartView.type,
             timespan: this.timespan,
-            plots: _.map(this.plots, plot => {
-                return {
-                    heightWeight: plot.heightWeight,
-                    series: _.map(plot.series, series => {
-                        return {
-                            dataSource: context.sealDataSource(series.dataSource),
-                            painter: series.painter.serialize(),
-                        };
-                    }),
-                };
-            }),
+            plots: _.map(this.plots, plot => plot.serialize(context)),
+            presets: this.presets,
         };
     }
 
@@ -243,6 +258,18 @@ class Plot {
     top: number;
     width: number;
     height: number;
+
+    public serialize(context: SerializationContext) {
+        return {
+            heightWeight: this.heightWeight,
+            series: _.map(this.series, series => {
+                return {
+                    dataSource: context.sealDataSource(series.dataSource),
+                    painter: series.painter.serialize(),
+                };
+            }),
+        };
+    }
 }
 
 class Series {
@@ -254,6 +281,7 @@ class Series {
 interface SerializedChartView extends SerializedView {
     timespan: number;
     plots: SerializedPlot[];
+    presets: SerializedPreset[];
 }
 
 interface SerializedPlot {
@@ -264,6 +292,12 @@ interface SerializedPlot {
 interface SerializedSeries {
     dataSource: CapsuleRef<SerializedDataSource>;
     painter: SerializedDataPainter;
+}
+
+interface SerializedPreset {
+    name: string;
+    timespan: number;
+    changes: { [key: string]: any; };
 }
 
 
@@ -278,6 +312,14 @@ function deserializePlot(context: DeserializationContext, structure: SerializedP
     });
 
     return ret;
+}
+
+
+function applyChangesToSerializedPlot(plot: SerializedPlot, changes: { [key: string]: any; }) {
+    _.each(plot.series, series => {
+        if ("period" in changes && "period" in series.painter)
+            series.painter["period"] = changes["period"];
+    });
 }
 
 
