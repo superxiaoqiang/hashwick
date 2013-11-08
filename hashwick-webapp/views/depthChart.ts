@@ -20,7 +20,6 @@ import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
 import eventLoop = require("../utils/eventLoop");
 import geometry_ = require("../utils/geometry");
-if (0) geometry_;
 import Rectangle = geometry_.Rectangle;
 import math = require("../utils/math");
 import serialization = require("./serialization");

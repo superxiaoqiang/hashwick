@@ -12,7 +12,7 @@ var app = express();
 app.set("view engine", "jade");
 app.set("views", __dirname + "/templates");
 
-if (app.get("env") === "development") {
+if (config.devMode) {
     var browserify = require("browserify-middleware");
     app.get("/static/compiled/app.js", browserify("../hashwick-webapp/app.js", {basedir: "../hashwick-webapp"}));
 

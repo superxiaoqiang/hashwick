@@ -17,20 +17,24 @@
   service: name=nginx state=started
 
 
-- name: copy sources
+- name: build app
+  command: grunt build-webapp
+  delegate_to: localhost
+
+- name: copy app
   command: rsync -az
            ../package.json
-           ../lib
-           ../hashwick-server
-           ../hashwick-webapp
-           ../vendor
+           ../out/hashwick-server
            {{ ansible_user_id }}@{{ inventory_hostname }}:/srv/hashwick
   delegate_to: localhost
   notify: restart hashwick-server
 
-- name: npm install
-  shell: cd /srv/hashwick && npm install
-
 - name: copy config.production.json
   template: src=config.production.json dest=/srv/hashwick/hashwick-server/config.production.json
   notify: restart hashwick-server
+
+- name: app directory permissions
+  file: path=/srv/hashwick state=directory mode=0777 recurse=true
+
+- name: npm install
+  shell: cd /srv/hashwick && npm install --production
