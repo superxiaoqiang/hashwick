@@ -17,10 +17,11 @@ import SerializedLayout = layoutDefs_.SerializedLayout;
 import LayoutPreset = layoutDefs_.LayoutPreset;
 import SerializedLayoutKnob = layoutDefs_.SerializedLayoutKnob;
 import layoutPresets = require("./layoutPresets");
+import paneDefs_ = require("./paneDefs");
+import Pane = paneDefs_.Pane;
+import SerializedPane = paneDefs_.SerializedPane;
 import panes_ = require("./panes");
 if (0) panes_;
-import Pane = panes_.Pane;
-import SerializedPane = panes_.SerializedPane;
 import deserializePane = panes_.deserializePane;
 
 

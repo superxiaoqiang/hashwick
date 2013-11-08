@@ -1,35 +1,15 @@
-import logger_ = require("../logger");
-if (0) logger_;
-import Logger = logger_.Logger;
+import logger = require("../logger");
 import user = require("../user");
 import context = require("../data/context");
 import serialization = require("../views/serialization");
 import view_ = require("../views/view");
 if (0) view_;
 import View = view_.View;
-import SerializedView = view_.SerializedView;
 import ViewUIContext = view_.ViewUIContext;
+import paneDefs = require("./paneDefs");
 
 
-export interface PaneClass {
-    deserialize(context: context.DeserializationContext, structure: SerializedPane): Pane;
-}
-
-export interface Pane {
-    type: string;
-    paneElement: JQuery;
-
-    serialize(context: context.SerializationContext): SerializedPane;
-    destroy(): void;
-    doLayout(): void;
-}
-
-export interface SerializedPane {
-    type: string;
-}
-
-
-class ViewPane implements Pane {
+class ViewPane implements paneDefs.Pane {
     public static type = "view";
 
     private view: View;
@@ -39,11 +19,11 @@ class ViewPane implements Pane {
     public titleElement: JQuery;
     private bodyElement: JQuery;
 
-    public static deserialize(context: context.DeserializationContext, structure: SerializedViewPane) {
+    public static deserialize(context: context.DeserializationContext, structure: paneDefs.SerializedViewPane) {
         return new this(context, structure);
     }
 
-    constructor(context: context.DeserializationContext, structure: SerializedViewPane) {
+    constructor(context: context.DeserializationContext, structure: paneDefs.SerializedViewPane) {
         this.paneElement = $('<div class="pane"></div>')
             .append(this.headerElement = $('<div class="pane-header"></div>')
                 .append(this.headerMenuElement = $('<ul class="pane-buttons"></ul>'))
@@ -54,7 +34,7 @@ class ViewPane implements Pane {
         this.bodyElement.append(this.view.viewElement);
     }
 
-    public serialize(context: context.SerializationContext): SerializedViewPane {
+    public serialize(context: context.SerializationContext): paneDefs.SerializedViewPane {
         return {
             type: ViewPane.type,
             view: this.view.serialize(context),
@@ -68,10 +48,6 @@ class ViewPane implements Pane {
     public doLayout() {
         this.view.doLayout();
     }
-}
-
-interface SerializedViewPane extends SerializedPane {
-    view: SerializedView;
 }
 
 class ViewContext implements ViewUIContext {
@@ -93,7 +69,8 @@ class SplitPane {
     public paneElement: JQuery;
     public children: SplitPaneChild[];
 
-    public static deserializeChildren(context: context.DeserializationContext, children: SerializedSplitPaneChild[]) {
+    public static deserializeChildren(context: context.DeserializationContext,
+                                      children: paneDefs.SerializedSplitPaneChild[]) {
         return _.map(children, child => {
             return {
                 pane: deserializePane(context, child.pane),
@@ -111,7 +88,7 @@ class SplitPane {
         });
     }
 
-    public serialize(context: context.SerializationContext): SerializedSplitPane {
+    public serialize(context: context.SerializationContext): paneDefs.SerializedSplitPane {
         return {
             type: (<any>this).constructor.type,
             children: _.map(this.children, child => {
@@ -139,25 +116,17 @@ class SplitPane {
 }
 
 interface SplitPaneChild {
-    pane: Pane;
+    pane: paneDefs.Pane;
     sizeWeight: number;
     positionCSS?: any;
 }
 
-interface SerializedSplitPane extends SerializedPane {
-    children: SerializedSplitPaneChild[];
-}
 
-interface SerializedSplitPaneChild {
-    pane: SerializedPane;
-    sizeWeight: number;
-}
-
-
-class SplitHorizontalPane extends SplitPane implements Pane {
+class SplitHorizontalPane extends SplitPane implements paneDefs.Pane {
     public static type = "splitHorz";
 
-    public static deserialize(context: context.DeserializationContext, structure: SerializedSplitPane) {
+    public static deserialize(context: context.DeserializationContext,
+                              structure: paneDefs.SerializedSplitPane) {
         var children = SplitPane.deserializeChildren(context, structure.children);
         return new SplitHorizontalPane(children);
     }
@@ -177,10 +146,11 @@ class SplitHorizontalPane extends SplitPane implements Pane {
 }
 
 
-class SplitVerticalPane extends SplitPane implements Pane {
+class SplitVerticalPane extends SplitPane implements paneDefs.Pane {
     public static type = "splitVert";
 
-    public static deserialize(context: context.DeserializationContext, structure: SerializedSplitPane) {
+    public static deserialize(context: context.DeserializationContext,
+                              structure: paneDefs.SerializedSplitPane) {
         var children = SplitPane.deserializeChildren(context, structure.children);
         return new SplitVerticalPane(children);
     }
@@ -200,7 +170,7 @@ class SplitVerticalPane extends SplitPane implements Pane {
 }
 
 
-class ErrorPane implements Pane {
+class ErrorPane implements paneDefs.Pane {
     public static type = "error";
 
     public paneElement: JQuery;
@@ -209,7 +179,7 @@ class ErrorPane implements Pane {
         this.paneElement = $('<div class="pane">Error loading pane</div>');
     }
 
-    public serialize(context: context.SerializationContext): SerializedErrorPane {
+    public serialize(context: context.SerializationContext): paneDefs.SerializedErrorPane {
         return {type: ErrorPane.type};
     }
     
@@ -218,18 +188,17 @@ class ErrorPane implements Pane {
     public doLayout() { }
 }
 
-interface SerializedErrorPane extends SerializedPane { }
 
+var log = new logger.Logger("ui.panes");
 
-var log = new Logger("ui.panes");
-
-var paneClasses: { [type: string]: PaneClass } = {};
+var paneClasses: { [type: string]: paneDefs.PaneClass } = {};
 paneClasses[ViewPane.type] = ViewPane;
 paneClasses[SplitHorizontalPane.type] = SplitHorizontalPane;
 paneClasses[SplitVerticalPane.type] = SplitVerticalPane;
 // exclude ErrorPane
 
-export function deserializePane(context: context.DeserializationContext, structure: SerializedPane) {
+export function deserializePane(context: context.DeserializationContext,
+                                structure: paneDefs.SerializedPane) {
     try {
         var paneClass = paneClasses[structure.type];
         return paneClass.deserialize(context, structure);

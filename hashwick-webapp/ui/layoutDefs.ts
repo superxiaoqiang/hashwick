@@ -5,9 +5,9 @@ import SerializedMarket = markets_.SerializedMarket;
 import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
-import panes_ = require("./panes");
-import Pane = panes_.Pane;
-import SerializedPane = panes_.SerializedPane;
+import paneDefs_ = require("./paneDefs");
+import Pane = paneDefs_.Pane;
+import SerializedPane = paneDefs_.SerializedPane;
 
 
 export interface Layout {
