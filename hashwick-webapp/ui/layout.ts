@@ -16,6 +16,7 @@ import Layout = layoutDefs_.Layout;
 import SerializedLayout = layoutDefs_.SerializedLayout;
 import LayoutPreset = layoutDefs_.LayoutPreset;
 import SerializedLayoutKnob = layoutDefs_.SerializedLayoutKnob;
+import LayoutEditor = require("./layoutEditor");
 import layoutPresets = require("./layoutPresets");
 import paneDefs_ = require("./paneDefs");
 import Pane = paneDefs_.Pane;
@@ -61,6 +62,8 @@ export function serializeCurrentLayout(): SerializedLayout {
 
 export function showLayoutMenu(event: Event) {
     var popup = new PopupMenu();
+    popup.addItem("Edit current layout", () => new LayoutEditor(serializeCurrentLayout()).show());
+    popup.addSeparator();
     _.each(layoutPresets.builtinLayoutPresets, preset => {
         popup.addItem(preset.name, () => setLayout(preset.layout));
     });

@@ -1,0 +1,57 @@
+.layout-editor-backdrop
+  @extend $fill-container
+  background: black
+  opacity: 0.33
+
+.layout-editor-insert-bar
+  position: absolute
+  display: none
+  width: 0
+  height: 0
+  &.active
+    display: block
+
+  insert-bar-size = 40px
+  &.top, &.bottom
+    border-left: insert-bar-size solid transparent
+    border-right: insert-bar-size solid transparent
+    > .content
+      height: insert-bar-size
+  &.top
+    border-top: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    > .content
+      top: -(insert-bar-size)
+  &.bottom
+    margin-top: -(insert-bar-size)
+    border-bottom: insert-bar-size solid rgba(0, 0, 0, 0.25)
+
+  &.left, &.right
+    border-top: insert-bar-size solid transparent
+    border-bottom: insert-bar-size solid transparent
+    > .content-positioner, > .content
+      display: inline-block
+      vertical-align: middle
+    > .content-positioner
+      height: 100%
+    > .content
+      width: insert-bar-size
+      margin-left: -(insert-bar-size)
+  &.left
+    border-left: insert-bar-size solid rgba(0, 0, 0, 0.25)
+  &.right
+    margin-left: -(insert-bar-size)
+    border-right: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    > .content
+      left: insert-bar-size
+
+  > .content
+    position: relative
+    text-align: center
+    font-size: insert-bar-size * 1.2
+    line-height: insert-bar-size
+    color: white
+    > a
+      color: white
+      text-shadow: 0 0 6px white
+      &:hover
+        text-decoration: none

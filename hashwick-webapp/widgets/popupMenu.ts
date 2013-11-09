@@ -18,6 +18,10 @@ class PopupMenu {
             .append($('<a href="#"></a>').text(text)));
     }
 
+    public addSeparator() {
+        this.element.append($('<li class="divider"></li>'));
+    }
+
     public show(anchor: JQuery) {
         this.element.css({position: "absolute", visibility: "none"});
         $("body").append(this.backdrop).append(this.element);

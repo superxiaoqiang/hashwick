@@ -17,3 +17,10 @@ tmp = "screen and (min-width: " + $screen-tablet + ")"
   .modal-dialog
     width: auto
     max-width: 600px
+
+.thumbnail.clickable
+  cursor: pointer
+.thumbnail.clickable:hover
+  @extend a.thumbnail:hover
+.thumbnail > .caption > h3:first-child
+  margin-top: 10px
