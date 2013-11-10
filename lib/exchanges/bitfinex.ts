@@ -32,7 +32,7 @@ class Bitfinex extends Exchange {
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
             data.reverse();  // order from oldest to newest
-            return _.map(data, decodeTrade);
+            return _.filter(_.map(data, decodeTrade), t => <any>t);
         });
     }
 
@@ -70,6 +70,8 @@ function decodeTicker(t: any) {
 }
 
 function decodeTrade(t: any) {
+    if (t.exchange !== "bitfinex")
+        return null;
     return new Trade(decodeTimestamp(t.timestamp), 0, t.price, t.amount);
 }
 
