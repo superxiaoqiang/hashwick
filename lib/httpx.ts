@@ -22,6 +22,9 @@ export function readBody(response: http.ClientResponse) {
         response.on("data", chunk => {
             data += chunk;
         });
+        response.on("close", () => {
+            reject();
+        });
         response.on("end", () => {
             resolve(data);
         });
