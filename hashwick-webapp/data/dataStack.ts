@@ -1,4 +1,3 @@
-import promise = require("../utils/promise");
 import formats_ = require("./formats");
 if (0) formats_;
 import SnapshotDataFormat = formats_.SnapshotDataFormat;
@@ -48,11 +47,9 @@ export class SnapshotDataStack<T> extends SnapshotDataSource<T> {
     }
 
     public prefetch() {
-        var ret = $.Deferred();
-        _.each(this.infos, info => {
-            info.source.prefetch().then(ret.resolve);
-        });
-        return ret;
+        return Promise.settle(_.map(this.infos, info => {
+            return info.source.prefetch();
+        })).then(() => { });
     }
 }
 
@@ -86,6 +83,10 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
         });
     }
 
+    private role(role: string) {
+        return _.where(this.infos, {role: role});
+    }
+
     private getLatestTimestampFromSources(infos: TemporalDataStackSourceInfo<T>[], ...args: any[]) {
         return _.reduce(infos, (acc, info) => {
             var result = info.source.getFromMemory.apply(info.source, args);
@@ -108,12 +109,12 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
             return info.source.getFromMemory.apply(info.source, [earliest, latest].concat(args));
         };
 
-        var sets = _.map(_.where(this.infos, {role: "historical"}), getter);
+        var sets = _.map(this.role("historical"), getter);
         var historicalLatest = this.getLatestTimestampFromDataSets(sets, earliest);
         earliest = historicalLatest || earliest;
         sets = sets
-            .concat(_.map(_.where(this.infos, {role: "partial"}), getter))
-            .concat(_.map(_.where(this.infos, {role: "realtime"}), getter));
+            .concat(_.map(this.role("partial"), getter))
+            .concat(_.map(this.role("realtime"), getter));
         return this.format.combineDataSets(sets);
     }
 
@@ -122,15 +123,14 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
             return info.source.prefetch.apply(info.source, [earliest, latest].concat(args));
         };
 
-        return promise.tolerantWhen<void>(_.map(_.where(this.infos, {role: "historical"}), prefetcher))
-            .then<void>(() => {
-                var historicalLatest = this.getLatestTimestampFromSources(
-                    _.where(this.infos, {role: "historical"}), earliest, latest);
-                earliest = historicalLatest || earliest;
-                // TODO: omit realtime from prefetch after fixing flugelhorn!
-                var theRest = _.where(this.infos, {role: "partial"}).concat(_.where(this.infos, {role: "realtime"}));
-                return promise.tolerantWhen<void>(_.map(theRest, prefetcher));
-            });
+        return Promise.settle(_.map(this.role("historical"), prefetcher)).then(() => {
+            var historicalLatest = this.getLatestTimestampFromSources(
+                _.where(this.infos, {role: "historical"}), earliest, latest);
+            earliest = historicalLatest || earliest;
+            // TODO: omit realtime from prefetch after fixing flugelhorn!
+            var theRest = this.role("partial").concat(this.role("realtime"));
+            return Promise.settle(_.map(theRest, prefetcher));
+        }).then(() => { });
     }
 }
 

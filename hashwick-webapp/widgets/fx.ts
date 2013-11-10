@@ -24,12 +24,12 @@ export function slideHorz(element: JQuery, start: number, stop: number) {
         .appendTo(stageWrapper);
     stage.width();  // trigger reflow
     stage.css("left", (stop - start) * width);
-    var pending = $.Deferred();
-    afterTransition(stage, () => {
-        stageWrapper.after(element).detach();
-        pending.resolve();
+    return new Promise(resolve => {
+        afterTransition(stage, () => {
+            stageWrapper.after(element).detach();
+            resolve();
+        });
     });
-    return pending;
 }
 
 export function slideReplaceHorz(former: JQuery, latter: JQuery, left?: boolean) {

@@ -12,8 +12,8 @@ function makeAccountAPIArgs(account: user.ExchangeAccount) {
     return JSON.stringify(ret);
 }
 
-export function getAccountBalances(account: user.ExchangeAccount): JQueryGenericPromise<BalancesResponse> {
-    return $.ajax({
+export function getAccountBalances(account: user.ExchangeAccount): Promise<BalancesResponse> {
+    return Promise.cast($.ajax({
         method: "POST",
         url: "/api/behest/get-balances",
         data: {
@@ -22,14 +22,15 @@ export function getAccountBalances(account: user.ExchangeAccount): JQueryGeneric
             apiArgs: makeAccountAPIArgs(account),
         },
         dataType: "json",
-    }).then((data: BalancesResponse) => {
+    })).then((data: BalancesResponse) => {
         log.info("Success from /api/behest/get-balances");
         _.each(data.response.balances, balance => {
             balance.total = parseFloat(<any>balance.total);
         });
         return data;
-    }, (): any => {
+    }).catch(err => {
         log.error("Error from /api/behest/get-balances");
+        throw err;
     });
 }
 

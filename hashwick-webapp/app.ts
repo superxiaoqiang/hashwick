@@ -1,3 +1,4 @@
+/// <reference path="../vendor/bluebird/bluebird.d.ts" />
 /// <reference path="../vendor/d3/d3.d.ts" />
 /// <reference path="../vendor/jquery/jquery.d.ts" />
 /// <reference path="../vendor/underscore/underscore.d.ts" />
@@ -29,10 +30,9 @@ function run(conf: any) {
 
     markets.init();
     frame.init();
-    user.init().then(afterInit, afterInit);
-    function afterInit() {
+    user.init().finally(() => {
         layout.setLayout(null);
-    }
+    });
 }
 
 function logTimeInfo(log: Logger) {

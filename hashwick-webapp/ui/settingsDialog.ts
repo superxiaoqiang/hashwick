@@ -44,7 +44,7 @@ class SettingsDialogImpl {
                 page.destroy();
             });
             this.dialog.dismiss();
-        }, () => {
+        }).catch(() => {
             // TODO: display error message
         });
     };
@@ -156,7 +156,7 @@ class ExchangeAccountsPage {
                     .append($("<td>").text(asset))
                     .append($("<td>").text(math.roundNumber(balance.total, 4))));
             })
-        }, () => {
+        }).catch(() => {
             assetList.html("<li>Error loading portfolio</li>");
         });
     };
@@ -301,7 +301,7 @@ class AddExchangeAccountPage {
 
         user.saveUserData().then(() => {
             this.dialog.setPage(this.parentPage, "slideRight");
-        }, () => {
+        }).catch(() => {
             // TODO: display error message
         });
     };
@@ -390,7 +390,7 @@ class UserPage {
         event.preventDefault();
         var username = $(event.target).closest("form").find("input[name=username]").val();
         var password = $(event.target).closest("form").find("input[name=password]").val();
-        user.signup(username, password).then(() => { }, () => {
+        user.signup(username, password).catch(() => {
             // TODO: display error message
         });
     };
@@ -400,14 +400,14 @@ class UserPage {
         var username = $(event.target).closest("form").find("input[name=username]").val();
         var password = $(event.target).closest("form").find("input[name=password]").val();
         var remember = $(event.target).closest("form").find("input[name=remember]").prop("checked");
-        user.login(username, password, remember).then(() => { }, () => {
+        user.login(username, password, remember).catch(() => {
             // TODO: display error message
         });
     };
 
     private logout = (event: Event) => {
         event.preventDefault();
-        user.logout().then(() => { }, () => {
+        user.logout().catch(() => {
             // TODO: display error message
         });
     };

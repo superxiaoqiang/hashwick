@@ -33,10 +33,10 @@ class DeferredTimer {
 
     private callTick = () => {
         this.timeout = null;
-        this.tick().then(this.start, this.start);
+        this.tick().finally(this.start);
     };
 
-    public tick(): JQueryGenericPromise<void> {
+    public tick(): Promise<void> {
         return $.Deferred().resolve();
     }
 }

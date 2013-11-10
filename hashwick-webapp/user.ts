@@ -90,11 +90,11 @@ export function init() {
     var token = localStorage.getItem("auth.token");
     if (!token) {
         setUser(null);
-        return $.Deferred().resolve();
+        return Promise.fulfilled();
     }
     return checkToken(token).then((data: LoginResponse) => {
         setUser(deserializeUser(data.response.username, token, data.response.data));
-    }, () => {
+    }).catch(() => {
         setUser(null);
     });
 }
@@ -115,63 +115,66 @@ function forgetUserToken() {
 
 
 export function signup(username: string, password: string) {
-    return $.ajax({
+    return Promise.cast($.ajax({
         method: "POST",
         url: "/api/signup",
         data: {username: username, password: password, data: serializeUserData()},
         dataType: "json",
-    }).then((data: LoginResponse) => {
+    })).then((data: LoginResponse) => {
         log.info("Success from /api/signup");
         currentUser.username = username;
         currentUser.token = data.response.token;
-    }, () => {
+    }).catch(err => {
         log.error("Error from /api/signup");
+        throw err;
     });
 }
 
 export function login(username: string, password: string, remember: boolean) {
-    return $.ajax({
+    return Promise.cast($.ajax({
         method: "POST",
         url: "/api/login",
         data: {username: username, password: password, data: serializeUserData()},
         dataType: "json",
-    }).then((data: LoginResponse) => {
+    })).then((data: LoginResponse) => {
         log.info("Success from /api/login");
         setUser(deserializeUser(username, data.response.token, data.response.data));
         if (remember)
             storeUserToken();
-    }, () => {
+    }).catch(err => {
         log.error("Error from /api/login");
+        throw err;
     });
 }
 
 function checkToken(token: string) {
-    return $.ajax({
+    return Promise.cast($.ajax({
         method: "POST",
         url: "/api/check-token",
         data: {token: token},
         dataType: "json",
-    }).then((data: LoginResponse) => {
+    })).then((data: LoginResponse) => {
         log.info("Success from /api/check-token");
         return data;
-    }, (): any => {
+    }).catch(err => {
         log.error("Error from /api/check-token");
+        throw err;
     });
 }
 
 export function saveUserData() {
-    return $.ajax({
+    return Promise.cast($.ajax({
         method: "POST",
         url: "/api/update-user-data",
         data: {token: currentUser.token, data: serializeUserData()},
         dataType: "json",
-    });
+    }));
 }
 
 export function logout() {
     setUser(null);
     forgetUserToken();
-    return $.Deferred().resolve();
+    return Promise.fulfilled();
 }
 
 interface LoginResponse {

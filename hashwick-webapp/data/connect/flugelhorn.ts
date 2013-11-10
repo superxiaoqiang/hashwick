@@ -226,7 +226,7 @@ export class RealtimeTrades extends interfaces.TradesDataSource implements Chann
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.RealtimeTrades:" + marketID);
         this.items = new RangeCache<number, Trade>(
-            this.format.sortKey, this.format.uniqueKey, () => $.Deferred().resolve());
+            this.format.sortKey, this.format.uniqueKey, () => Promise.fulfilled());
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
 
         this.channel = socketeer.register("trades:" + this.marketID);

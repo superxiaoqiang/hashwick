@@ -4,7 +4,7 @@ import Signal = require("./signal");
 
 
 export interface KeyFunc<T, V> { (value: V): T }
-export interface RangeGetter<T, V> { (earliest: T, latest: T): JQueryGenericPromise<V[]> }
+export interface RangeGetter<T, V> { (earliest: T, latest: T): Promise<V[]> }
 
 export class RangeCache<T, V> {
     private sortKey: KeyFunc<T, V>;

@@ -40,7 +40,7 @@ class LayoutEditor {
 
         fx.slideHorz(this.header, 1, 0).then(() => {
             this.header.addClass("navbar-fixed-top");
-        });
+        }).done();
         fx.fadeIn(this.backdrop);
         this.buildArena();
     }
@@ -50,7 +50,7 @@ class LayoutEditor {
         this.header.removeClass("navbar-fixed-top");
         fx.slideHorz(this.header, 0, 1).then(() => {
             this.header.remove();
-        });
+        }).done();
         fx.fadeOutAndRemove(this.backdrop);
     }
 
@@ -176,7 +176,7 @@ class ArenaPoint {
             var newPane = {type: "view", view: view};
             addPaneToLayout(this.editor.layout, this.path, this.edge, newPane);
             this.editor.applyAndReload();
-        });
+        }).done();
     }
 }
 

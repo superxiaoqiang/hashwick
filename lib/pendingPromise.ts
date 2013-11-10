@@ -1,8 +1,10 @@
 class PendingPromise<T> {
-    private inst: JQueryDeferred<T>;
+    private inst: PromiseResolver<T>;
 
     public promise() {
-        return this.inst || (this.inst = $.Deferred());
+        if (!this.inst)
+            this.inst = Promise.pending();
+        return this.inst.promise;
     }
 
     public isPending(): boolean {
@@ -11,7 +13,7 @@ class PendingPromise<T> {
 
     public resolve(value?: T) {
         if (this.inst) {
-            this.inst.resolve(value);
+            this.inst.fulfill(value);
             this.inst = null;
         }
     }

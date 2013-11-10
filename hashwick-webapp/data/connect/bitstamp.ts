@@ -90,7 +90,7 @@ export class TradesDataSource extends interfaces.TradesDataSource {
         this.channel = "live_trades";
         this.realtime = 0;
         this.items = new RangeCache<Date, Trade>(
-            this.format.sortKey, this.format.uniqueKey, () => $.Deferred().resolve());
+            this.format.sortKey, this.format.uniqueKey, () => Promise.fulfilled());
         this.items.gotData.attach(this.gotData.emit.bind(this.gotData));
     }
 

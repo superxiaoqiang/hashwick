@@ -7,7 +7,7 @@ import Dialog = require("../widgets/dialog");
 
 class ViewDialog {
     private dialog: Dialog;
-    private deferred = $.Deferred();
+    private pending = Promise.pending();
 
     constructor() {
         this.dialog = new Dialog("Choose a View");
@@ -26,12 +26,12 @@ class ViewDialog {
 
     public show() {
         this.dialog.show();
-        return this.deferred;
+        return this.pending.promise;
     }
 
     public dismiss() {
         this.dialog.dismiss();
-        this.deferred.resolve();
+        this.pending.fulfill(null);
     }
 
     private chooseView(item: ViewGalleryItem) {
@@ -39,7 +39,7 @@ class ViewDialog {
         var viewClass = serialization.viewClasses[item.class];
         var view = {type: item.class};  // TODO: define and use a proper interface for
                                         // creating the default state of a view
-        this.deferred.resolve(view);
+        this.pending.fulfill(view);
     }
 }
 

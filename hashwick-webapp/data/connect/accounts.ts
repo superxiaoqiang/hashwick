@@ -47,18 +47,19 @@ export class AccountLivePortfolioDataSource extends interfaces.LivePortfolioData
 
     public prefetch() {
         if (this.isUpToDate(this.interval))
-            return $.Deferred().resolve();
+            return Promise.fulfilled();
         return this.fetchUncached();
     }
 
     private fetchUncached() {
-        return accountsAjax.getAccountBalances(this.account).then((data) => {
+        return accountsAjax.getAccountBalances(this.account).then(data => {
             var portfolio = {
                 assets: data.response.balances,
             };
             this.snapshot = new models.SnapshotData<models.Portfolio>(time.serverNow(), portfolio);
-        }, () => {
+        }).catch(err => {
             // TODO: display/log error
+            throw err;
         });
     }
 }

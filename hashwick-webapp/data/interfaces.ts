@@ -41,8 +41,8 @@ export class SnapshotDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(): JQueryGenericPromise<void> {
-        return $.Deferred().resolve();
+    public prefetch(): Promise<void> {
+        return Promise.fulfilled();
     }
 }
 
@@ -54,8 +54,8 @@ export class TemporalDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(earliest: Date, latest: Date): JQueryGenericPromise<void> {
-        return $.Deferred().resolve();
+    public prefetch(earliest: Date, latest: Date): Promise<void> {
+        return Promise.fulfilled();
     }
 }
 
@@ -67,8 +67,8 @@ export class PeriodicTemporalDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(earliest: Date, latest: Date, period: number): JQueryGenericPromise<void> {
-        return $.Deferred().resolve();
+    public prefetch(earliest: Date, latest: Date, period: number): Promise<void> {
+        return Promise.fulfilled();
     }
 }
 
