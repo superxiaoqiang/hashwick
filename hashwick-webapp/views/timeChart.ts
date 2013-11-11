@@ -133,27 +133,16 @@ class ChartView implements View {
         this.log.trace("redrawing chart");
         this.calculatePlotSizes();
 
-        var xMax = time.serverNow();
-        var xMin = new Date(xMax.getTime() - this.timespan * 1000);
-
-        var domain = new MinMaxPair(xMin, xMax);
+        var domain = this.calculateDomain();
         _.each(this.plots, plot => {
-            _.each(plot.series, series => {
-                domain = series.painter.adjustDomain(domain);
-            });
+            this.measurePlot(plot, domain);
         });
-        xMin = domain.min;
-        xMax = domain.max;
 
         $(this.svg.node()).empty();
-
-        _.each(this.plots, plot => {
-            var g = this.drawPlot(plot, xMin, xMax);
-            g.attr("transform", "translate(" + plot.left + "," + plot.top + ")");
-            this.svg.node().appendChild(g.node());
-        });
-
-        this.drawXAxis(xMin, xMax);
+        _.each(this.plots, this.drawGridlines.bind(this));
+        _.each(this.plots, this.drawData.bind(this));
+        _.each(this.plots, this.drawAxes.bind(this));
+        this.drawXAxis(domain.min, domain.max);
     };
 
     private calculateAllPlotsSize() {
@@ -182,6 +171,20 @@ class ChartView implements View {
         });
     }
 
+    private calculateDomain() {
+        var xMax = time.serverNow();
+        var xMin = new Date(xMax.getTime() - this.timespan * 1000);
+
+        var domain = new MinMaxPair(xMin, xMax);
+        _.each(this.plots, plot => {
+            _.each(plot.series, series => {
+                domain = series.painter.adjustDomain(domain);
+            });
+        });
+
+        return domain;
+    }
+
     private drawXAxis(xMin: Date, xMax: Date) {
         var bounds = this.calculateAllPlotsSize();
 
@@ -207,48 +210,67 @@ class ChartView implements View {
         }
     }
 
-    private drawPlot(plot: Plot, xMin: Date, xMax: Date) {
-        var canvas = d3.select(dom.createSVGElement("g"));
+    private measurePlot(plot: Plot, domain: MinMaxPair<Date>) {
+        plot.xMin = domain.min;
+        plot.xMax = domain.max;
 
         var range = new MinMaxPair<number>();
         _.each(plot.series, series => {
-            series.predraw = series.painter.predraw(xMin, xMax);
+            series.predraw = series.painter.predraw(plot.xMin, plot.xMax);
             range.grow(series.predraw.range);
         });
+        plot.yMin = range.min;
+        plot.yMax = range.max;
 
-        var yScale = d3.scale.linear().domain([range.min, range.max]).range([plot.height, 0]).nice();
-        range = MinMaxPair.fromArray(yScale.domain());
-        var yGrid = axes.makeYTicks(yScale);
-        var yTicks = canvas.selectAll(null)
-            .data(yGrid)
+        plot.yScale = d3.scale.linear().domain([plot.yMin, plot.yMax]).range([plot.height, 0]).nice();
+    }
+
+    private makeCanvas(plot: Plot) {
+        return d3.select(dom.createSVGElement("g"))
+            .attr("transform", "translate(" + plot.left + "," + plot.top + ")");
+    }
+
+    private makeYGrid(canvas: D3.Selection, plot: Plot) {
+        return canvas.selectAll(null)
+            .data(axes.makeYTicks(plot.yScale))
             .enter().append("g")
-            .attr("transform", (t: any) => "translate(0," + yScale(t) + ")");
+                .attr("transform", (t: any) => "translate(0," + plot.yScale(t) + ")");
+    }
 
-        // drawing order matters here! lowest to highest z-order
+    private drawGridlines(plot: Plot) {
+        var canvas = this.makeCanvas(plot);
+        this.svg.node().appendChild(canvas.node());
+        var yGrid = this.makeYGrid(canvas, plot);
+        yGrid.append("line").attr({class: "gridline", x1: 0, y1: 0, x2: plot.width, y2: 0});
+    }
 
-        yTicks.append("line")
-            .attr({class: "gridline", x1: 0, y1: 0, x2: plot.width, y2: 0});
+    private drawData(plot: Plot) {
+        var canvas = this.makeCanvas(plot);
+        this.svg.node().appendChild(canvas.node());
 
         _.each(plot.series, series => {
-            var g = series.painter.draw(plot.width, plot.height, xMin, xMax, range.min, range.max, series.predraw);
+            var g = series.painter.draw(plot.width, plot.height,
+                plot.xMin, plot.xMax, plot.yMin, plot.yMax, series.predraw);
             canvas.node().appendChild(g.node());
         });
+    }
 
-        // axis lines
+    private drawAxes(plot: Plot) {
+        var canvas = this.makeCanvas(plot);
+        this.svg.node().appendChild(canvas.node());
+        var yGrid = this.makeYGrid(canvas, plot);
+
         canvas.append("line")
             .attr({class: "axis", x1: 0, y1: 0, x2: 0, y2: plot.height});
         canvas.append("line")
             .attr({class: "axis", x1: 0, y1: plot.height, x2: plot.width, y2: plot.height});
 
-        // ticks
-        yTicks.append("line")
+        yGrid.append("line")
             .attr({class: "tickmark", x1: 0, y1: 0, x2: -this.tickSize, y2: 0});
-        yTicks.append("text")
+        yGrid.append("text")
             .attr({class: "gridline-label", "text-anchor": "end",
                    transform: "translate(-" + (this.tickSize + 2) + ",6)"})
             .text(axes.scaleFormatter(yGrid));
-
-        return canvas;
     }
 }
 
@@ -260,6 +282,11 @@ class Plot {
     top: number;
     width: number;
     height: number;
+    xMin: Date;
+    xMax: Date;
+    yMin: number;
+    yMax: number;
+    yScale: D3.Scale.QuantitiveScale;
 
     public serialize(context: SerializationContext) {
         return {
