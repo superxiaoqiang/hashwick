@@ -1,12 +1,14 @@
 import fun = require("../fun");
 
 
-function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T, rightInclusive: boolean) {
+function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T,
+                        leftInclusive: boolean, rightInclusive: boolean) {
     // This should be replaced with a binary search for the endpoints
     // whenever I'm feeling less lazy
     return _.filter(xs, x => {
         var k = key(x);
-        return lowest <= k && (rightInclusive ? k <= highest : k < highest);
+        return (leftInclusive ? lowest <= k : lowest < k) &&
+            (rightInclusive ? k <= highest : k < highest);
     });
 }
 
@@ -25,9 +27,12 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
 
     return _.flatten(_.map(ranges, range => {
         var slices = _.map(range.arrays, (array: T[]) => {
+            var leftInclusive = sortKey(array[0]) === range.edges[0];
             var rightInclusive = sortKey(array[array.length - 1]) === range.edges[1];
-            return sortedSlice(array, sortKey, range.edges[0], range.edges[1], rightInclusive);
+            return sortedSlice(array, sortKey, range.edges[0], range.edges[1],
+                leftInclusive, rightInclusive);
         });
+        slices = _.filter(slices, slice => <any>slice.length);
         if (slices.length === 1)
             return slices[0];
 
