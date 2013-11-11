@@ -278,6 +278,8 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Sim
     }
 
     private prefetchDequeue() {
+        if (!this.prefetchQueue.length)
+            return;
         var next = this.prefetchQueue.shift();
         if (next)
             this.items.prefetch(next[0].getTime(), next[1].getTime());
@@ -311,6 +313,7 @@ export class HistoricalTrades extends interfaces.TradesDataSource implements Sim
         logTradesInfo(this.log, trades);
         this.items.mergeItems(trades);
         this.pendingPromise.resolve();
+        this.prefetchDequeue();
     }
 }
 

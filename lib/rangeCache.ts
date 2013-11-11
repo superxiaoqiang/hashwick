@@ -1,5 +1,4 @@
 import compsci = require("./calc/compsci");
-import MinMaxPair = require("./minMaxPair");
 import Signal = require("./signal");
 
 
@@ -36,26 +35,21 @@ export class RangeCache<T, V> {
     }
 
     public prefetch(first: T, last: T) {
-        var needed = this.calcMissingRange(first, last);
-        if (!needed)
-            return;
-        return this.fetcher(needed.min, needed.max).then(this.mergeItems);
+        _.each(this.calcMissingRanges(first, last), needed => {
+            this.fetcher.apply(this, needed).then(this.mergeItems);
+        });
     }
 
-    private calcMissingRange(first: T, last: T) {
+    private calcMissingRanges(first: T, last: T) {
         if (!this.items.length)
-            return new MinMaxPair<T>(first, last);
+            return [[first, last]];
 
+        var ret: T[][] = [];
         if (first < this.firstKey)
-            if (last > this.lastKey)
-                return new MinMaxPair<T>(first, last);
-            else
-                return new MinMaxPair<T>(first, this.firstKey);
-        else
-            if (last > this.lastKey)
-                return new MinMaxPair<T>(this.lastKey, last);
-            else
-                return null;
+            ret.push([first, this.firstKey]);
+        if (last > this.lastKey)
+            ret.push([this.lastKey, last]);
+        return ret;
     }
 
     public mergeItems(newItems: V[]) {
