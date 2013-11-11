@@ -44,37 +44,37 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
         exchange: new MtGox(),
         market: markets.get("mtgox", "BTC", "USD"),
         pollSchedulingGroup: "mtgox",
-        pollSchedulingGroupMinDelay: 3 * 1000,
-        tickerPollRate: 5 * 1000,
-        tradesPollRate: 3 * 1000,
-        depthPollRate: 10 * 1000,
+        pollSchedulingGroupMinDelay: 2 * 1000,
+        tickerPollRate: 3 * 1000,
+        tradesPollRate: 2 * 1000,
+        depthPollRate: 5 * 1000,
     });
     bookkeeper.add({
         exchange: new BTCE(),
         market: markets.get("btce", "BTC", "USD"),
         pollSchedulingGroup: "btce",
-        pollSchedulingGroupMinDelay: 3 * 1000,
-        tickerPollRate: 5 * 1000,
-        tradesPollRate: 3 * 1000,
-        depthPollRate: 10 * 1000,
+        pollSchedulingGroupMinDelay: 2 * 1000,
+        tickerPollRate: 3 * 1000,
+        tradesPollRate: 2 * 1000,
+        depthPollRate: 5 * 1000,
     });
     bookkeeper.add({
         exchange: new Bitstamp(),
         market: markets.get("bitstamp", "BTC", "USD"),
         pollSchedulingGroup: "bitstamp",
-        pollSchedulingGroupMinDelay: 3 * 1000,
-        tickerPollRate: 8 * 1000,
-        tradesPollRate: 5 * 1000,
-        depthPollRate: 15 * 1000,
+        pollSchedulingGroupMinDelay: 2 * 1000,
+        tickerPollRate: 3 * 1000,
+        tradesPollRate: 2 * 1000,
+        depthPollRate: 5 * 1000,
     });
     bookkeeper.add({
         exchange: new Bitfinex(),
         market: markets.get("bitfinex", "BTC", "USD"),
         pollSchedulingGroup: "bitfinex",
-        pollSchedulingGroupMinDelay: 3 * 1000,
-        tickerPollRate: 5 * 1000,
-        tradesPollRate: 3 * 1000,
-        depthPollRate: 10 * 1000,
+        pollSchedulingGroupMinDelay: 2 * 1000,
+        tickerPollRate: 3 * 1000,
+        tradesPollRate: 2 * 1000,
+        depthPollRate: 5 * 1000,
     });
 }
 
