@@ -38,7 +38,7 @@ class LayoutEditor {
             .on("mousemove", this.mousemove.bind(this))
             .appendTo("body");
 
-        fx.slideHorz(this.header, 1, 0).then(() => {
+        fx.slideVert(this.header, -1, 0).then(() => {
             this.header.addClass("navbar-fixed-top");
         }).done();
         fx.fadeIn(this.backdrop);
@@ -48,7 +48,7 @@ class LayoutEditor {
     private dismiss() {
         this.container.remove();
         this.header.removeClass("navbar-fixed-top");
-        fx.slideHorz(this.header, 0, 1).then(() => {
+        fx.slideVert(this.header, 0, -1).then(() => {
             this.header.remove();
         }).done();
         fx.fadeOutAndRemove(this.backdrop);

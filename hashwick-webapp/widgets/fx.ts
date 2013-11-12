@@ -14,22 +14,37 @@ export function fadeOutAndRemove(element: JQuery) {
     });
 }
 
-export function slideHorz(element: JQuery, start: number, stop: number) {
-    var width = element.width();
-    var height = element.height();
-    var stageWrapper = $("<div>").css({position: "relative", overflow: "hidden", width: width, height: height});
+export interface NumberDict {
+    [key: string]: number;
+}
+
+export function slide(element: JQuery, start: NumberDict, stop: NumberDict) {
+    var width = element.outerWidth(true);
+    var height = element.outerHeight(true);
+    var stageWrapper = $("<div>").css({position: "relative", overflow: "hidden",
+                                       width: width, height: height});
     element.after(stageWrapper).detach();
     var stage = $('<div class="generic-animation" style="position:relative"></div>')
-        .append($("<div>").append(element).css({position: "absolute", width: width, left: start * width}))
+        .append($("<div>").append(element).css({position: "absolute", width: width}).css(start))
         .appendTo(stageWrapper);
     stage.width();  // trigger reflow
-    stage.css("left", (stop - start) * width);
+    stage.css(stop);
     return new Promise(resolve => {
         afterTransition(stage, () => {
             stageWrapper.after(element).detach();
             resolve();
         });
     });
+}
+
+export function slideHorz(element: JQuery, start: number, stop: number) {
+    var width = element.outerWidth(true);
+    return slide(element, {left: start * width}, {left: (stop - start) * width});
+}
+
+export function slideVert(element: JQuery, start: number, stop: number) {
+    var height = element.outerHeight(true);
+    return slide(element, {top: start * height}, {top: (stop - start) * height});
 }
 
 export function slideReplaceHorz(former: JQuery, latter: JQuery, left?: boolean) {
