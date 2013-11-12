@@ -1,3 +1,5 @@
+var _ = require("underscore");
+
 var assets = require("./assets");
 import config = require("./config");
 
@@ -7,6 +9,8 @@ export function index(req: ExpressServerRequest, res: ExpressServerResponse) {
         assetURL: getAssetURL,
         js_config: {
             flugelhornSocket: config.flugelhornSocket,
+            themes: _.object(_.map(config.themes, (file, name) =>
+                [name, getAssetURL("/static/compiled/theme." + file + ".css")])),
         },
     });
 }

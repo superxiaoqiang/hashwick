@@ -1,3 +1,4 @@
+import config = require("../config");
 import context_ = require("../data/context");
 if (0) context_;
 import DeserializationContext = context_.DeserializationContext;
@@ -49,6 +50,10 @@ export function setLayout(structure: SerializedLayout) {
     };
 }
 
+function setTheme(url: string) {
+    $("link[rel=stylesheet]").attr("href", url);
+}
+
 export function serializeCurrentLayout(): SerializedLayout {
     var context = new SerializationContext();
     var rootPane = curLayout.rootPane.serialize(context);
@@ -66,6 +71,10 @@ export function showLayoutMenu(event: Event) {
     popup.addSeparator();
     _.each(layoutPresets.builtinLayoutPresets, preset => {
         popup.addItem(preset.name, () => setLayout(preset.layout));
+    });
+    popup.addSeparator();
+    _.each(config.themes, (url, name) => {
+        popup.addItem(name, () => setTheme(url));
     });
     popup.show($(event.target));
 }

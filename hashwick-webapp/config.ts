@@ -3,6 +3,7 @@ var config: {
     flugelhornSocket: string;
     pageLoadServerTime: Date;
     pageLoadClientTime: Date;
+    themes: { [name: string]: string; };
 } = <any>{};
 
 export = config;
