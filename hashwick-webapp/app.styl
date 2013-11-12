@@ -10,11 +10,13 @@ $icon-font-path = "http://netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/"
 @import "nib"
 
 @import "app.all"
+@import "app." + $theme
 
 @import "ui/frame." + $theme
 @import "ui/frame.all"
 @import "ui/fx.all"
 @import "ui/layoutEditor.all"
+@import "ui/layoutEditor." + $theme
 @import "ui/panes." + $theme
 @import "ui/panes.all"
 
@@ -25,4 +27,3 @@ $icon-font-path = "http://netdna.bootstrapcdn.com/bootstrap/3.0.0/fonts/"
 @import "views/tradeScroller.all"
 
 @import "widgets/menu.all"
-

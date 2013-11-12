@@ -1,7 +1,5 @@
 .layout-editor-backdrop
   @extend $fill-container
-  background: black
-  opacity: 0.33
 
 .layout-editor-insert-bar
   position: absolute
@@ -12,22 +10,23 @@
     display: block
 
   insert-bar-size = 40px
+  border: 0 solid transparent
   &.top, &.bottom
-    border-left: insert-bar-size solid transparent
-    border-right: insert-bar-size solid transparent
+    border-left-width: insert-bar-size
+    border-right-width: insert-bar-size
     > .content
       height: insert-bar-size
   &.top
-    border-top: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    border-top-width: insert-bar-size
     > .content
       top: -(insert-bar-size)
   &.bottom
     margin-top: -(insert-bar-size)
-    border-bottom: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    border-bottom-width: insert-bar-size
 
   &.left, &.right
-    border-top: insert-bar-size solid transparent
-    border-bottom: insert-bar-size solid transparent
+    border-top-width: insert-bar-size
+    border-bottom-width: insert-bar-size
     > .content-positioner, > .content
       display: inline-block
       vertical-align: middle
@@ -37,10 +36,10 @@
       width: insert-bar-size
       margin-left: -(insert-bar-size)
   &.left
-    border-left: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    border-left-width: insert-bar-size
   &.right
     margin-left: -(insert-bar-size)
-    border-right: insert-bar-size solid rgba(0, 0, 0, 0.25)
+    border-right-width: insert-bar-size
     > .content
       left: insert-bar-size
 
@@ -51,7 +50,5 @@
     line-height: insert-bar-size
     color: white
     > a
-      color: white
-      text-shadow: 0 0 6px white
       &:hover
         text-decoration: none

@@ -1,0 +1,34 @@
+btn-styles-dark(btn-color = #555)
+  border-color: lighten(btn-color, 20%)
+
+  &:hover
+    background-color: lighten(btn-color, 10%)
+  &:active
+    background-color: darken(btn-color, 15%)
+
+.btn
+  &:active, &.active
+    background-image: none;
+
+.btn-default
+  btn-styles-dark($btn-default-bg)
+.btn-primary
+  btn-styles-dark($btn-primary-bg)
+.btn-success
+  btn-styles-dark($btn-success-bg)
+.btn-warning
+  btn-styles-dark($btn-warning-bg)
+.btn-danger
+  btn-styles-dark($btn-danger-bg)
+.btn-info
+  btn-styles-dark($btn-info-bg)
+
+.navbar
+  background: black
+.navbar-default .navbar-nav > li > a
+  color: hsl(0, 0%, 60%)
+  &:hover, &:focus
+    color: hsl(0, 0%, 90%)
+
+.well
+  border-color: hsl(0, 0%, 30%)
