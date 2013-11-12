@@ -46,7 +46,8 @@ module.exports = function(grunt) {
                     use: [require('nib')],
                 },
                 files: {
-                    'out/hashwick-server/static/compiled/theme.bwhite.css': 'hashwick-webapp/theme.bwhite.styl'
+                    'out/hashwick-server/static/compiled/theme.bwhite.css': 'hashwick-webapp/theme.bwhite.styl',
+                    'out/hashwick-server/static/compiled/theme.bnight.css': 'hashwick-webapp/theme.bnight.styl',
                 }
             }
         },
