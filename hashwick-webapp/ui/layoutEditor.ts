@@ -173,6 +173,8 @@ class ArenaPoint {
     public add(event: Event) {
         event.preventDefault();
         new ViewDialog().show().then(view => {
+            if (!view)
+                return;
             var newPane = {type: "view", view: view};
             addPaneToLayout(this.editor.layout, this.path, this.edge, newPane);
             this.editor.applyAndReload();
