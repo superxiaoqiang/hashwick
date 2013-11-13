@@ -206,6 +206,10 @@ class ChartView implements View {
         return function (date: Date) {
             var hr = date.getHours();
             var min = date.getMinutes();
+            if (hr === 0 && min === 0) {
+                var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return months[date.getMonth()] + " " + date.getDate();
+            }
             return hr + ":" + (min > 9 ? "" : "0") + min;
         }
     }
