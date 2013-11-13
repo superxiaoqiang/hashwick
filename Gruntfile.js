@@ -33,6 +33,11 @@ module.exports = function(grunt) {
                 dest: '.tmp/hashwick-webapp/app.js',
             }
         },
+        shell: {
+            compactWebapp: {
+                command: 'node deploy/shortenModuleNames.js .tmp/hashwick-webapp/app.js'
+            }
+        },
         uglify: {
             webapp: {
                 files: {
@@ -90,6 +95,7 @@ module.exports = function(grunt) {
         'typescript:server',
         'typescript:webapp',
         'browserify:webapp',
+        'shell:compactWebapp',
         'uglify:webapp',
         'stylus:webapp',
         'cachebuster:webapp',
