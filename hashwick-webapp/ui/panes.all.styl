@@ -1,4 +1,4 @@
-$pane-header-height = 2rem
+$pane-header-height = 2.2rem
 
 .pane
   @extend $fill-container
@@ -9,12 +9,16 @@ $pane-header-height = 2rem
   top: 0
   width: 100%
   height: $pane-header-height
+  line-height: $pane-header-height
+  padding: 0 0.3rem
 
 .pane-title
   @extend .text-muted
 
 .pane-buttons
   @extend .list-inline
+  margin: 0
+  padding: 0
   float: right
   a:hover
     text-decoration: none
