@@ -83,13 +83,13 @@ function setupPeriodicJobs(db: database.Database) {
         setInterval(() => {
             _.each(markets.all, market => {
                 aggregate.buildCandles(db, market, timespan);
-            })
+            });
         }, timespan * 1000);
     });
 
     setInterval(() => {
         _.each(markets.all, market => {
             aggregate.cleanOldDepth(db, market);
-        })
+        });
     }, 15 * 60 * 1000);
 }
