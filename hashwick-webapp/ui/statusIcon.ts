@@ -88,7 +88,7 @@ export class StatusIcon {
         // body scrollbar from appearing and shifting things around in weird ways
         this.popup.css({
             left: "inherit",
-            right: 0,
+            right: "1px",
         });
         this.popupArrow.css({
             left: this.iconElement.offset().left + this.iconElement.width() / 2 - this.popup.offset().left,
