@@ -1,6 +1,7 @@
 import _ = require("underscore");
 
 import serializers = require("../../lib/serializers");
+import Candle = require("../../lib/models/candle");
 import Order = require("../../lib/models/order");
 import OrderBook = require("../../lib/models/orderBook");
 import database = require("./database");
@@ -12,6 +13,7 @@ class RequestHandler {
         server.bind("getTicker", this.getTicker.bind(this));
         server.bind("getTrades", this.getTrades.bind(this));
         server.bind("getDepth", this.getDepth.bind(this));
+        server.bind("getCandles", this.getCandles.bind(this));
     }
 
     private getTicker(socket: any, data: any) {
@@ -51,6 +53,15 @@ class RequestHandler {
                 return;
             var book = OrderBook.fromSortedOrders(orders);
             this.server.sendToOne(socket, "depth:" + data.marketID, serializers.serializeOrderBook(book));
+        });
+    }
+
+    private getCandles(socket: any, data: any) {
+        this.db.get_candles(data.marketID, data.period,
+            new Date(data.earliest * 1000), new Date(data.latest * 1000))
+        .then((candles: Candle[]) => {
+            var cndls = _.map(candles, serializers.serializeCandle);
+            this.server.sendToOne(socket, "getCandles:" + data.marketID, {candles: cndls});
         });
     }
 }

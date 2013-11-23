@@ -3,13 +3,12 @@ import Candle = require("../models/candle");
 
 
 class CandleResampler {
-    public onCandle: (candle: Candle) => void;
     private destCandle: Candle;
     private opposingVolume: number;
     private buy_opposingVolume: number;
     private sell_opposingVolume: number;
 
-    constructor(private period: number) { }
+    constructor(private period: number, private onCandle: (c: Candle) => void) { }
 
     private resetCandle(start: Date) {
         this.destCandle = new Candle(date.roundDown(start, this.period), this.period);

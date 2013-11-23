@@ -65,6 +65,13 @@ export class Database {
             query.on("end", end);
     }
 
+    public get_candles(market_id: number, timespan: number, start: Date, end: Date) {
+        return this.query("SELECT * FROM candle" +
+                " WHERE market_id = $1 AND timespan = $2 AND start >= $3 AND start <= $4" +
+                " ORDER BY start", [market_id, timespan, start, end])
+            .then(result => result.rows);
+    }
+
     public get_latest_candle(market_id: number, timespan: number) {
         return this.query("SELECT start FROM candle" +
                 " WHERE market_id = $1 AND timespan = $2" +

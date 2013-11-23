@@ -122,6 +122,7 @@ export function init() {
                 //{source: new mtgox.TradesDataSource("dbf1dee9-4f2e-4a08-8cb7-748919a71b21", "USD"), role: "realtime"},
             ],
             ohlcvDataSources: [
+                {source: new flugelhorn.Candles("1"), role: "historical"},
             ],
             liveDepthDataSources: [
                 {source: new flugelhorn.LiveDepth("1")},
@@ -150,6 +151,7 @@ export function init() {
                 {source: new flugelhorn.HistoricalTrades("3"), role: "historical"},
             ],
             ohlcvDataSources: [
+                {source: new flugelhorn.Candles("3"), role: "historical"},
             ],
             liveDepthDataSources: [
                 {source: new flugelhorn.LiveDepth("3")},
@@ -176,6 +178,7 @@ export function init() {
                 {source: new flugelhorn.HistoricalTrades("4"), role: "historical"},
             ],
             ohlcvDataSources: [
+                {source: new flugelhorn.Candles("4"), role: "historical"},
             ],
             liveDepthDataSources: [
                 {source: new flugelhorn.LiveDepth("4")},
@@ -201,6 +204,7 @@ export function init() {
                 {source: new flugelhorn.HistoricalTrades("5"), role: "historical"},
             ],
             ohlcvDataSources: [
+                {source: new flugelhorn.Candles("5"), role: "historical"},
             ],
             liveDepthDataSources: [
                 {source: new flugelhorn.LiveDepth("5")},
