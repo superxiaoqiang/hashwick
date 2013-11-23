@@ -22,6 +22,12 @@ export class Database {
         this.query = Promise.promisify(db.query, db);
     }
 
+    public get_most_recent_ticker(market_id: number) {
+        return this.query("SELECT * FROM ticker WHERE market_id = $1" +
+                " ORDER BY timestamp DESC LIMIT 1", [market_id])
+            .then(result => result.rows[0]);
+    }
+
     public get_trade_by_id_from_exchange(market_id: number, id_from_exchange: string) {
         return this.query("SELECT * FROM trade WHERE market_id = $1 AND id_from_exchange = $2",
                 [market_id, id_from_exchange])

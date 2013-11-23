@@ -15,7 +15,11 @@ class RequestHandler {
     }
 
     private getTicker(socket: any, data: any) {
-        console.log(JSON.stringify(data));
+        this.db.get_most_recent_ticker(data.marketID).then(ticker => {
+            if (ticker)
+                this.server.sendToOne(socket, "ticker:" + data.marketID,
+                    serializers.serializeTicker(ticker));
+        });
     }
 
     private getTrades(socket: any, data: any) {
