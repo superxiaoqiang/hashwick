@@ -15,6 +15,12 @@ function sortedSlice<T>(xs: T[], key: (x: T) => any, lowest: T, highest: T,
 export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: (x: T) => any) {
     var edgeValues = _.map(arrays, a => a.length ? [a[0], a[a.length - 1]] : []);
     var edgeKeys = _.uniq(_.map(_.flatten(edgeValues, true), sortKey));
+
+    // if there are 0 or 1 edgeKeys, then they're are equal, so
+    // sorting isn't necessary; just merge all input arrays
+    if (edgeKeys.length < 2)
+        return _.reduce(arrays, (acc, arr) => acc.concat(arr));
+
     edgeKeys.sort();
     var edgePairs = _.map(_.range(edgeKeys.length - 1), i => [edgeKeys[i], edgeKeys[i + 1]]);
 
