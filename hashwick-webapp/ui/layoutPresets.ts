@@ -5,15 +5,15 @@ import LayoutPreset = layoutDefs_.LayoutPreset;
 
 var timeChartPresets = [{
     name: "1h",
-    timespan: 2 * 24 * 60 * 60,
+    timespan: 2.5 * 24 * 60 * 60,
     changes: {period: 60 * 60},
 }, {
     name: "15m",
-    timespan: 12 * 60 * 60,
+    timespan: 15 * 60 * 60,
     changes: {period: 15 * 60},
 }, {
     name: "5m",
-    timespan: 4 * 60 * 60,
+    timespan: 5 * 60 * 60,
     changes: {period: 5 * 60},
 }, {
     name: "1m",
