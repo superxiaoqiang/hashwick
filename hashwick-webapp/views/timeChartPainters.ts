@@ -60,6 +60,7 @@ class CandlestickPainter implements TemporalDataPainter<number> {
     private dataSource: OHLCVDataSource;
     private period: number;
     private sparse: boolean;
+    private opacitize: boolean;
     private vwap: string;
     private vwapOpacitize: boolean;
 
@@ -127,7 +128,8 @@ class CandlestickPainter implements TemporalDataPainter<number> {
             } else {
                 path = "M" + x1 + "," + y2 + "L" + x2 + "," + y2 + "L" + x2 + "," + y1 + "L" + x2 + "," + y2 + "L" + x3 + "," + y2 + "L" + x3 + "," + y3 + "L" + x2 + "," + y3 + "L" + x2 + "," + y4 + "L" + x2 + "," + y3 + "L" + x1 + "," + y3 + "Z";
             }
-            g.append("path").attr({class: "candlestick " + dirClass + " " + fillClass, d: path});
+            var candleElement = g.append("path")
+                .attr({class: "candlestick " + dirClass + " " + fillClass, d: path});
 
             var vwapElement: D3.Selection;
             if (this.vwap === "line") {
@@ -141,8 +143,12 @@ class CandlestickPainter implements TemporalDataPainter<number> {
                     .attr({class: "peg " + dirClass, cx: x2, cy: yv, r: r});
             }
 
-            if (vwapElement && this.vwapOpacitize)
-                vwapElement.attr("opacity", Math.log(candle.volume) / Math.log((<any>predraw).volumeMax));
+            var opacity = Math.log(candle.volume) / Math.log((<any>predraw).volumeMax);
+
+            if (this.opacitize)
+                candleElement.attr("opacity", opacity);
+            if (vwapElement && (this.opacitize || this.vwapOpacitize))
+                vwapElement.attr("opacity", opacity);
         }
 
         return g;
