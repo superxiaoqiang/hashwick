@@ -88,6 +88,11 @@ function makeMarket(exchange: Exchange, structure: any) {
         exchange: exchange,
         description: exchange.name + " " + structure.left + "/" + structure.right,
     }, structure);
+    ret.liveTickerDataSources.push({
+        source: new calc.InferLiveTickerDataSource(
+            new marketData.MarketTradesDataSource({key: null, name: null, item: ret}),
+            new marketData.MarketLiveDepthDataSource({key: null, name: null, item: ret})),
+    });
     ret.ohlcvDataSources.push({
         source: new calc.TradesToCandlesDataSource(
             new marketData.MarketTradesDataSource({key: null, name: null, item: ret})),

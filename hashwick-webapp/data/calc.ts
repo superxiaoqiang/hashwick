@@ -3,6 +3,7 @@ import capsule_ = require("../utils/capsule");
 if (0) capsule_;
 import Capsule = capsule_.Capsule;
 import CapsuleRef = capsule_.CapsuleRef;
+import time = require("../utils/time");
 import context_ = require("./context");
 if (0) context_;
 import DeserializationContext = context_.DeserializationContext;
@@ -10,12 +11,16 @@ import SerializationContext = context_.SerializationContext;
 import interfaces_ = require("./interfaces");
 if (0) interfaces_;
 import SerializedDataSource = interfaces_.SerializedDataSource;
+import LiveTickerDataSource = interfaces_.LiveTickerDataSource;
+import LiveDepthDataSource = interfaces_.LiveDepthDataSource;
 import TradesDataSource = interfaces_.TradesDataSource;
 import OHLCVDataSource = interfaces_.OHLCVDataSource;
 import models_ = require("./models");
 if (0) models_;
+import SnapshotData = models_.SnapshotData;
 import TemporalData = models_.TemporalData;
 import Candle = models_.Candle;
+import Ticker = models_.Ticker;
 import Trade = models_.Trade;
 import serialization = require("./serialization");
 
@@ -128,5 +133,56 @@ export class TradesToCandlesDataSource extends OHLCVDataSource {
 
     public prefetch(earliest: Date, latest: Date, period: number) {
         return this.trades.prefetch(earliest, latest);
+    }
+}
+
+
+export class InferLiveTickerDataSource extends LiveTickerDataSource {
+    private trades: TradesDataSource;
+    private depth: LiveDepthDataSource;
+
+    constructor(tradesDataSource: TradesDataSource, depthDataSource: LiveDepthDataSource) {
+        super();
+        this.trades = tradesDataSource;
+        this.depth = depthDataSource;
+        this.trades.gotData.attach(this.gotData.emit.bind(this.gotData));
+        this.depth.gotData.attach(this.gotData.emit.bind(this.gotData));
+    }
+
+    public wantRealtime() {
+        this.trades.wantRealtime();
+        this.depth.wantRealtime();
+    }
+
+    public unwantRealtime() {
+        this.trades.unwantRealtime();
+        this.depth.unwantRealtime();
+    }
+
+    public getFromMemory() {
+        // TODO: somehow get just the latest trade regardless of time window size
+        var latest = time.serverNow();
+        var earliest = new Date(latest.getTime() - 5 * 60 * 1000);
+        var trades = this.trades.getFromMemory(earliest, latest);
+        var latestTrade = trades && trades.data[trades.data.length - 1];
+
+        var depth = this.depth.getFromMemory();
+
+        if (latestTrade && depth && depth.data.bids.length && depth.data.asks.length) {
+            var timestamp = new Date(Math.max(latestTrade.timestamp.getTime(),
+                                              depth.timestamp.getTime()));
+            var ticker = new Ticker(latestTrade.price,
+                                    depth.data.bids[0].price, depth.data.asks[0].price);
+            return new SnapshotData(timestamp, ticker);
+        }
+    }
+
+    public prefetch() {
+        var latest = time.serverNow();
+        var earliest = new Date(latest.getTime() - 5 * 60 * 1000);
+        return Promise.settle([
+            this.trades.prefetch(earliest, latest),
+            this.depth.prefetch(),
+        ]).then(() => { });
     }
 }

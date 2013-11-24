@@ -18,9 +18,7 @@ export class TemporalData<T> {
 
 
 export class Ticker {
-    public last: number;
-    public bid: number;
-    public ask: number;
+    constructor(public last: number, public bid: number, public ask: number) { }
 }
 
 export class Trade {

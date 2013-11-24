@@ -456,11 +456,7 @@ export class LiveDepth extends interfaces.LiveDepthDataSource implements Channel
 
 
 function decodeTicker(t: any) {
-    var ticker = new Ticker();
-    ticker.last = parseFloat(t.last);
-    ticker.bid = parseFloat(t.bid);
-    ticker.ask = parseFloat(t.ask);
-    return ticker;
+    return new Ticker(parseFloat(t.last), parseFloat(t.bid), parseFloat(t.ask));
 }
 
 function decodeTrade(trade: any) {

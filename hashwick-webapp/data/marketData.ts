@@ -212,7 +212,7 @@ interface SerializedMarketOHLCVDataSource extends interfaces.SerializedDataSourc
 }
 
 
-class MarketLiveDepthDataSource extends interfaces.LiveDepthDataSource {
+export class MarketLiveDepthDataSource extends interfaces.LiveDepthDataSource {
     public static type = "marketLiveDepth";
 
     private market: Capsule<Market>;
@@ -268,7 +268,7 @@ class MarketLiveDepthDataSource extends interfaces.LiveDepthDataSource {
     }
 }
 
-interface SerializedMarketLiveDepthDataSource extends interfaces.SerializedDataSource {
+export interface SerializedMarketLiveDepthDataSource extends interfaces.SerializedDataSource {
     market: CapsuleRef<SerializedMarket>;
 }
 
