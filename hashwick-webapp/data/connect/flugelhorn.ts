@@ -1,7 +1,6 @@
 import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
 if (0) clingyWebSocket_;
 import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
-import ClingyWebSocketOptions = clingyWebSocket_.ClingyWebSocketOptions;
 import mixin = require("../../../lib/mixin");
 import PendingPromise = require("../../../lib/pendingPromise");
 import rangeCache_ = require("../../../lib/rangeCache");
@@ -42,9 +41,11 @@ class Socketeer {
             return;
         this.socket = new ClingyWebSocket({
             maker: () => new WebSocket(config.flugelhornSocket),
-            log: this.log,
         });
-        this.socket.onopen = this.onConnect.bind(this);
+        this.socket.onopen = this.onOpen.bind(this);
+        this.socket.onclose = this.onClose.bind(this);
+        this.socket.onconnecting = this.onConnecting.bind(this);
+        this.socket.ontimeout = this.onTimeout.bind(this);
         this.socket.onmessage = this.onMessage.bind(this);
         this.log = new Logger("data.connect.flugelhorn.socketeer");
         statusIcon = frame.addFooterIcon("Flugelhorn", "/static/icons/flugelhorn.ico");
@@ -85,13 +86,26 @@ class Socketeer {
             this.socket.send(JSON.stringify({command: "unsubscribe", channel: channel.name}));
     }
 
-    private onConnect() {
+    private onOpen() {
+        this.log.info("connected");
         _.each(this.channels, channel => {
             if (channel.subscribed)
                 this.socket.send(JSON.stringify({command: "subscribe", channel: channel.name}));
             if (channel.onOpen)
                 channel.onOpen();
         });
+    }
+
+    private onClose() {
+        this.log.info("disconnected");
+    }
+
+    private onConnecting() {
+        this.log.info("connecting");
+    }
+
+    private onTimeout() {
+        this.log.info("timed out");
     }
 
     private onMessage(event: MessageEvent) {

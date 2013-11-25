@@ -1,19 +1,11 @@
-export interface TODOReplaceThisWithLibLogger {
-    debug: any;
-    info: any;
-}
-
-
 export interface ClingyWebSocketOptions {
     maker: () => any;
-    log?: TODOReplaceThisWithLibLogger;
     timeout?: number;
 }
 
 
 export class ClingyWebSocket {
     private maker: () => any;
-    private log: TODOReplaceThisWithLibLogger;
     private timeout: number;
 
     private active: boolean;
@@ -24,10 +16,11 @@ export class ClingyWebSocket {
     public onopen: (event: Event) => void;
     public onclose: (event: CloseEvent) => void;
     public onmessage: (event: MessageEvent) => void;
+    public onconnecting: () => void;
+    public ontimeout: () => void;
 
     constructor(private options: ClingyWebSocketOptions) {
         this.maker = options.maker;
-        this.log = options.log;
         this.timeout = options.timeout || 60 * 1000;
 
         this.active = true;
@@ -50,13 +43,13 @@ export class ClingyWebSocket {
     }
 
     private connect() {
-        if (this.log)
-            this.log.debug("connecting");
         this.socket = this.maker();
         this.socket.onopen = this.onOpen;
         this.socket.onclose = this.onClose;
         this.socket.onmessage = this.onMessage;
         this.lastContactAt = Date.now();
+        if (this.onconnecting)
+            this.onconnecting();
     }
 
     private reconnect() {
@@ -66,22 +59,18 @@ export class ClingyWebSocket {
 
     private checkTimeout = () => {
         if (Date.now() > this.lastContactAt + this.timeout) {
-            if (this.log)
-                this.log.info("no messages received for " + Math.round(this.timeout / 1000) + " sec");
+            if (this.ontimeout)
+                this.ontimeout();
             this.reconnect();
         }
     };
 
     private onOpen = (event: Event) => {
-        if (this.log)
-            this.log.debug("connected");
         if (this.onopen)
             this.onopen(event);
     };
 
     private onClose = (event: CloseEvent) => {
-        if (this.log)
-            this.log.debug("disconnected");
         if (this.onclose)
             this.onclose(event);
     };
