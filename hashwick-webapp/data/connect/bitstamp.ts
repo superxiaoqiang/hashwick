@@ -1,3 +1,6 @@
+import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
+if (0) clingyWebSocket_;
+import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
 import logger_ = require("../../logger");
 if (0) logger_;
 import Logger = logger_.Logger;
@@ -20,16 +23,21 @@ var log = new Logger("data.connect.bitstamp");
 var statusIcon: StatusIcon;
 
 class Socketeer {
-    private socket: WebSocket;
+    private socket: ClingyWebSocket;
     private established: boolean;
     private handlers: { [channel: string]: (event: string, data: any) => void; } = {};
 
     public connect() {
         if (this.socket)
             return;
-        this.socket = new WebSocket("wss://ws.pusherapp.com/app/de504dc5763aeef9ff52?protocol=6&client=js&version=2.1.2&flash=false");
-        this.socket.onopen = this.onConnect;
-        this.socket.onmessage = this.onMessage;
+        this.socket = new ClingyWebSocket({
+            maker: () => new WebSocket("wss://ws.pusherapp.com/app/de504dc5763aeef9ff52?protocol=6&client=js&version=2.1.2&flash=false"),
+        });
+        this.socket.onopen = this.onOpen.bind(this);
+        this.socket.onclose = this.onClose.bind(this);
+        this.socket.onconnecting = this.onConnecting.bind(this);
+        this.socket.ontimeout = this.onTimeout.bind(this);
+        this.socket.onmessage = this.onMessage.bind(this);
         statusIcon = frame.addFooterIcon("Bitstamp websocket", "/static/icons/bitstamp.ico");
     }
 
@@ -42,14 +50,14 @@ class Socketeer {
 
     public subscribe(channel: string, handler: (event: string, data: any) => void) {
         this.connect();
-        log.debug("subscribing to channel " + channel);
+        log.info("subscribing to channel " + channel);
         this.handlers[channel] = handler;
         if (this.established)
             this.socket.send(JSON.stringify({event: "pusher:subscribe", data: {channel: channel}}));
     }
 
     public unsubscribe(channel: string) {
-        log.debug("unsubscribing from channel " + channel);
+        log.info("unsubscribing from channel " + channel);
         if (this.established)
             this.socket.send(JSON.stringify({event: "pusher:unsubscribe", data: {channel: channel}}));
         delete this.handlers[channel];
@@ -57,9 +65,21 @@ class Socketeer {
             this.disconnect();
     }
 
-    private onConnect = (data: any) => {
-        log.trace("connected");
+    private onOpen = (data: any) => {
+        log.info("connected");
     };
+
+    private onClose() {
+        log.info("disconnected");
+    }
+
+    private onConnecting() {
+        log.info("connecting");
+    }
+
+    private onTimeout() {
+        log.info("timed out");
+    }
 
     private onMessage = (event: MessageEvent) => {
         var data = JSON.parse(event.data);

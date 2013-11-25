@@ -1,3 +1,6 @@
+import clingyWebSocket_ = require("../../../lib/clingyWebSocket");
+if (0) clingyWebSocket_;
+import ClingyWebSocket = clingyWebSocket_.ClingyWebSocket;
 import logger_ = require("../../logger");
 if (0) logger_;
 import Logger = logger_.Logger;
@@ -63,16 +66,21 @@ var log = new Logger("data.connect.mtgox");
 //}
 
 class WebSocketeer {
-    private socket: WebSocket;
+    private socket: ClingyWebSocket;
     private handlers: { [channel: string]: (data: any) => void; } = {};
     private statusIcon: StatusIcon;
 
     public connect() {
         if (this.socket)
             return;
-        this.socket = new WebSocket("wss://websocket.mtgox.com/mtgox");
-        this.socket.onopen = this.onConnect;
-        this.socket.onmessage = this.onMessage;
+        this.socket = new ClingyWebSocket({
+            maker: () => new WebSocket("wss://websocket.mtgox.com/mtgox"),
+        });
+        this.socket.onopen = this.onOpen.bind(this);
+        this.socket.onclose = this.onClose.bind(this);
+        this.socket.onconnecting = this.onConnecting.bind(this);
+        this.socket.ontimeout = this.onTimeout.bind(this);
+        this.socket.onmessage = this.onMessage.bind(this);
         this.statusIcon = frame.addFooterIcon("Mt. Gox websocket", "/static/icons/mtgox.ico");
     }
 
@@ -84,30 +92,46 @@ class WebSocketeer {
         frame.removeFooterIcon(this.statusIcon);
     }
 
+    private getReadyState() {
+        return this.socket ? this.socket.getReadyState() : WebSocket.CLOSED;
+    }
+
     public subscribe(channel: string, handler: (data: any) => void) {
         this.connect();
         log.debug("subscribing to channel " + channel);
         this.handlers[channel] = handler;
-        if (this.socket.readyState === WebSocket.OPEN)
+        if (this.getReadyState() === WebSocket.OPEN)
             this.socket.send(JSON.stringify({op: "subscribe", channel: channel}));
     }
 
     public unsubscribe(channel: string) {
         log.debug("unsubscribing from channel " + channel);
-        if (this.socket.readyState === WebSocket.OPEN)
+        if (this.getReadyState() === WebSocket.OPEN)
             this.socket.send(JSON.stringify({op: "unsubscribe", channel: channel}));
         delete this.handlers[channel];
         if (!_.size(this.handlers))
             this.disconnect();
     }
 
-    private onConnect = (data: any) => {
-        log.trace("connected");
+    private onOpen = (data: any) => {
+        log.info("connected");
         this.statusIcon.logPacket("connected");
         _.each(this.handlers, (handler, channel) => {
             this.socket.send(JSON.stringify({op: "subscribe", channel: channel}));
         });
     };
+
+    private onClose() {
+        log.info("disconnected");
+    }
+
+    private onConnecting() {
+        log.info("connecting");
+    }
+
+    private onTimeout() {
+        log.info("timed out");
+    }
 
     private onMessage = (event: MessageEvent) => {
         var data = JSON.parse(event.data);
