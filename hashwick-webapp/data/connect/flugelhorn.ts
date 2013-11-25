@@ -88,6 +88,7 @@ class Socketeer {
 
     private onOpen() {
         this.log.info("connected");
+        statusIcon.logPacket("connected");
         _.each(this.channels, channel => {
             if (channel.subscribed)
                 this.socket.send(JSON.stringify({command: "subscribe", channel: channel.name}));
@@ -98,14 +99,17 @@ class Socketeer {
 
     private onClose() {
         this.log.info("disconnected");
+        statusIcon.logError("disconnected");
     }
 
     private onConnecting() {
-        this.log.info("connecting");
+        this.log.info("connecting\u2026");
+        statusIcon.logInfo("connecting\u2026");
     }
 
     private onTimeout() {
         this.log.info("timed out");
+        statusIcon.logError("timed out");
     }
 
     private onMessage(event: MessageEvent) {

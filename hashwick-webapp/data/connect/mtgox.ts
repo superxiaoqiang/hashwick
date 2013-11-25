@@ -123,14 +123,17 @@ class WebSocketeer {
 
     private onClose() {
         log.info("disconnected");
+        this.statusIcon.logError("disconnected");
     }
 
     private onConnecting() {
-        log.info("connecting");
+        log.info("connecting\u2026");
+        this.statusIcon.logInfo("connecting\u2026");
     }
 
     private onTimeout() {
         log.info("timed out");
+        this.statusIcon.logError("timed out");
     }
 
     private onMessage = (event: MessageEvent) => {

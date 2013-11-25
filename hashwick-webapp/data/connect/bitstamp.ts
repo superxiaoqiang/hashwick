@@ -67,18 +67,22 @@ class Socketeer {
 
     private onOpen = (data: any) => {
         log.info("connected");
+        statusIcon.logPacket("connected");
     };
 
     private onClose() {
         log.info("disconnected");
+        statusIcon.logError("disconnected");
     }
 
     private onConnecting() {
-        log.info("connecting");
+        log.info("connecting\u2026");
+        statusIcon.logInfo("connecting\u2026");
     }
 
     private onTimeout() {
         log.info("timed out");
+        statusIcon.logError("timed out");
     }
 
     private onMessage = (event: MessageEvent) => {

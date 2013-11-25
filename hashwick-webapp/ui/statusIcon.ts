@@ -32,9 +32,15 @@ export class StatusIcon {
         this.updateState("active");
     }
 
-    public logError(entry: StatusEntry) {
+    public logRequestError(entry: StatusEntry) {
         this.refreshPopup();
         this.updateState("error");
+    }
+
+    public logInfo(text: string) {
+        var entry = {timestamp: time.serverNow(), text: text};
+        this.pushEntry(entry);
+        this.refreshPopup();
     }
 
     public logPacket(text: string) {
@@ -42,6 +48,13 @@ export class StatusIcon {
         this.pushEntry(entry);
         this.refreshPopup();
         this.updateState("active");
+    }
+
+    public logError(text: string) {
+        var entry = {timestamp: time.serverNow(), text: text};
+        this.pushEntry(entry);
+        this.refreshPopup();
+        this.updateState("error");
     }
 
     private pushEntry(entry: StatusEntry) {
