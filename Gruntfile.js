@@ -41,7 +41,7 @@ module.exports = function(grunt) {
         uglify: {
             webapp: {
                 files: {
-                    'out/hashwick-server/static/compiled/app.js': '.tmp/hashwick-webapp/app.js',
+                    '.tmp/hashwick-server/static/compiled/app.js': '.tmp/hashwick-webapp/app.js',
                 }
             }
         },
@@ -51,24 +51,24 @@ module.exports = function(grunt) {
                     use: [require('nib')],
                 },
                 files: {
-                    'out/hashwick-server/static/compiled/theme.bwhite.css': 'hashwick-webapp/theme.bwhite.styl',
-                    'out/hashwick-server/static/compiled/theme.bnight.css': 'hashwick-webapp/theme.bnight.styl',
+                    '.tmp/hashwick-server/static/compiled/theme.bwhite.css': 'hashwick-webapp/theme.bwhite.styl',
+                    '.tmp/hashwick-server/static/compiled/theme.bnight.css': 'hashwick-webapp/theme.bnight.styl',
                 }
             }
         },
         cachebuster: {
             webapp: {
                 options: {
-                    basedir: 'out/hashwick-server',
+                    basedir: '.tmp/hashwick-server',
                     length: 16,
                     complete: function (hashes) { return assetHashes = hashes; }
                 },
-                src: ['out/hashwick-server/static/**/*'],
+                src: ['.tmp/hashwick-server/static/compiled/**'],
                 dest: 'out/hashwick-server/assets.json',
             }
         },
         copy: {
-            webappAssets: {
+            webappFiles: {
                 files: [{
                     expand: true,
                     cwd: 'hashwick-server/templates',
@@ -76,8 +76,17 @@ module.exports = function(grunt) {
                     dest: 'out/hashwick-server/templates',
                 }, {
                     expand: true,
-                    cwd: 'out/hashwick-server',
-                    src: 'static/**',
+                    cwd: 'hashwick-server/static',
+                    src: '**',
+                    dest: 'out/hashwick-server/static',
+                    filter: function (src) { return src.indexOf('compiled') === -1; },
+                }]
+            },
+            webappAssets: {
+                files: [{
+                    expand: true,
+                    cwd: '.tmp/hashwick-server',
+                    src: 'static/compiled/**',
                     dest: 'out/hashwick-server/',
                     rename: function (dest, src) {
                         if (src in assetHashes)
@@ -98,6 +107,7 @@ module.exports = function(grunt) {
         'shell:compactWebapp',
         'uglify:webapp',
         'stylus:webapp',
+        'copy:webappFiles',
         'cachebuster:webapp',
         'copy:webappAssets',
     ]);
