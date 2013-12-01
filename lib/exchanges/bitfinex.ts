@@ -10,12 +10,16 @@ import Trade = require("../models/trade");
 import Exchange = require("./exchange");
 
 
+// TODO: figure out SSL cert issue and remove rejectUnauthorized
+
+
 class Bitfinex extends Exchange {
     public fetchTicker(left: string, right: string) {
         return httpx.request(https, {
             host: "api.bitfinex.com",
             path: "/v1/ticker/" + encodePair(left, right),
             headers: this.requestHeaders(),
+            rejectUnauthorized: false,
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
             return decodeTicker(data);
@@ -29,6 +33,7 @@ class Bitfinex extends Exchange {
             headers: this.requestHeaders({
                 timestamp: Math.floor(since.getTime() / 1000).toString(),
             }),
+            rejectUnauthorized: false,
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
             data.reverse();  // order from oldest to newest
@@ -41,6 +46,7 @@ class Bitfinex extends Exchange {
             host: "api.bitfinex.com",
             path: "/v1/book/" + encodePair(left, right),
             headers: this.requestHeaders(),
+            rejectUnauthorized: false,
         }).then(httpx.readBody).then(body => {
             var data = JSON.parse(body);
             return new OrderBook(
