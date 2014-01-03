@@ -223,10 +223,11 @@ class ChartView implements View {
             series.predraw = series.painter.predraw(plot.xMin, plot.xMax);
             range.grow(series.predraw.range);
         });
-        plot.yMin = range.min;
-        plot.yMax = range.max;
 
-        plot.yScale = d3.scale.linear().domain([plot.yMin, plot.yMax]).range([plot.height, 0]).nice();
+        plot.yScale = d3.scale.linear().domain([range.min, range.max]).range([plot.height, 0]).nice();
+        var niceDomain = plot.yScale.domain();
+        plot.yMin = niceDomain[0];
+        plot.yMax = niceDomain[1];
     }
 
     private makeCanvas(plot: Plot) {
