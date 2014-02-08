@@ -1,7 +1,8 @@
+import math = require("./math");
+
+
 export function formatNumberSigFigs(num: number, figs: number) {
-    var places = figs - 1 - Math.floor(Math.log(num) / Math.log(10));
-    places = places > 0 ? places : 0;
-    return num.toFixed(places);
+    return num.toFixed(math.getLastSigPlace(num, figs));
 }
 
 export function formatNumberFixed(num: number, places: number) {

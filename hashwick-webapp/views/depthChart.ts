@@ -22,6 +22,7 @@ import eventLoop = require("../utils/eventLoop");
 import geometry_ = require("../utils/geometry");
 import Rectangle = geometry_.Rectangle;
 import math = require("../utils/math");
+import strings = require("../utils/strings");
 import serialization = require("./serialization");
 import view_ = require("./view");
 if (0) view_;
@@ -31,6 +32,7 @@ import ViewUIContext = view_.ViewUIContext;
 
 
 var minDepthInfoHeight = 16;
+var sigFigs = 4;
 
 class DepthChartView implements View {
     public static type = "depthChart";
@@ -150,13 +152,13 @@ class DepthChartView implements View {
 
     private analyzeSide(data: DepthDataPoint[], xMin: number, xMax: number) {
         var total = 0;
-        var walls: { [price: string]: Wall; } = {};
+        var walls: { [price: number]: Wall; } = {};
         for (var d = 0, dlen = data.length; d < dlen; ++d) {
             var datum = data[d];
             if (xMin <= datum.price && datum.price <= xMax) {
                 total += datum.amount;
-                var rounded = math.roundNumber(datum.price, 2);
-                var wall = walls[rounded.toString()] || (walls[rounded.toString()] = new Wall(rounded, 0, 0));
+                var priceBucket = math.roundNumberSigFigs(datum.price, sigFigs);
+                var wall = walls[priceBucket] || (walls[priceBucket] = new Wall(priceBucket, 0, 0));
                 wall.amount += datum.amount;
                 wall.total = total;
             }
@@ -241,10 +243,12 @@ class DepthChartView implements View {
         var html: string;
         if (align === "left") {
             css.left = xScale(wall.price) + margin;
-            html = math.roundNumber(wall.amount) + ' <span class="text-muted">(' + math.roundNumber(wall.price, 4) + ")</span>";
+            html = strings.formatNumberSigFigs(wall.amount, sigFigs) + ' <span class="text-muted">(' +
+                strings.formatNumberSigFigs(wall.price, sigFigs) + ")</span>";
         } else {
             css.right = plot.width - xScale(wall.price) + margin;
-            html = '<span class="text-muted">(' + math.roundNumber(wall.price, 4) + ")</span> " + math.roundNumber(wall.amount);
+            html = '<span class="text-muted">(' + strings.formatNumberSigFigs(wall.price, sigFigs) + ")</span> " +
+                strings.formatNumberSigFigs(wall.amount, sigFigs);
         }
         this.infoDiv.append($('<div class="wall-infobox"></div>').css(css).html(html));
     }
