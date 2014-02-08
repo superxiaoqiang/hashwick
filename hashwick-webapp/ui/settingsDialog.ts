@@ -282,8 +282,10 @@ class AddExchangeAccountPage {
     private ok = () => {
         var exchange = this.getSelectedExchange();
         var shortName = this.shortName.val();
-        var credentials = _.object(_.map(this.credentialFields(),
-                                         fun.splat((c: ExchangeCredential, f: JQuery) => [c.key, f.val()])));
+        var credentials = <{ [name: string]: string; }>
+                            _.object(_.map(this.credentialFields(),
+                                           fun.splat((c: ExchangeCredential, f: JQuery)
+                                                            => [c.key, f.val()])));
         if (this.mode === "add") {
             user.currentUser.accounts.push({
                 id: strings.randomGibberish(),

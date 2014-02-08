@@ -3,6 +3,7 @@ import Rectangle = geometry_.Rectangle;
 import paneDefs_ = require("./paneDefs");
 import SerializedPane = paneDefs_.SerializedPane;
 import SerializedSplitPane = paneDefs_.SerializedSplitPane;
+import SerializedSplitPaneChild = paneDefs_.SerializedSplitPaneChild;
 
 
 export interface PositionIterator {
@@ -14,7 +15,7 @@ export function enumChildPositions(
         pane: SerializedPane, bounds: Rectangle, iterator: PositionIterator) {
     if (pane.type === "splitVert") {
         var splitPane = <SerializedSplitPane>pane;
-        var totalSizeWeight = _.reduce(splitPane.children, (a, c) => a + c.sizeWeight, 0);
+        var totalSizeWeight = _.reduce<SerializedSplitPaneChild, number>(splitPane.children, (a, c) => a + c.sizeWeight, 0);
         var curSizeWeight = 0;
         _.each(splitPane.children, (child, index) => {
             var childBounds = {
@@ -28,7 +29,7 @@ export function enumChildPositions(
         });
     } else if (pane.type === "splitHorz") {
         var splitPane = <SerializedSplitPane>pane;
-        var totalSizeWeight = _.reduce(splitPane.children, (a, c) => a + c.sizeWeight, 0);
+        var totalSizeWeight = _.reduce<SerializedSplitPaneChild, number>(splitPane.children, (a, c) => a + c.sizeWeight, 0);
         var curSizeWeight = 0;
         _.each(splitPane.children, (child, index) => {
             var childBounds = {

@@ -38,7 +38,7 @@ export class SnapshotDataStack<T> extends SnapshotDataSource<T> {
     }
 
     public getFromMemory(): SnapshotData<T> {
-        return _.reduce(this.infos, (result, info) => {
+        return _.reduce<SnapshotDataStackSourceInfo<T>, SnapshotData<T>>(this.infos, (result, info) => {
             var candidate = info.source.getFromMemory();
             return !result ? candidate :
                 !candidate ? result :
@@ -88,7 +88,7 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
     }
 
     private getLatestTimestampFromSources(infos: TemporalDataStackSourceInfo<T>[], ...args: any[]) {
-        return _.reduce(infos, (acc, info) => {
+        return _.reduce<TemporalDataStackSourceInfo<T>, Date>(infos, (acc, info) => {
             var result = info.source.getFromMemory.apply(info.source, args);
             var candidate = result.data.length
                 ? info.source.format.extractTimestamp(result.data[result.data.length - 1])
@@ -98,7 +98,7 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
     }
 
     private getLatestTimestampFromDataSets(sets: TemporalData<T>[], earliest: Date) {
-        return _.reduce(sets, (acc, set) => {
+        return _.reduce<TemporalData<T>, Date>(sets, (acc, set) => {
             var candidate = set.data.length ? this.format.extractTimestamp(set.data[set.data.length - 1]) : undefined;
             return !acc ? candidate : !candidate ? acc : candidate > acc ? candidate : acc;
         }, earliest);

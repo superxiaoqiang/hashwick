@@ -1,4 +1,5 @@
 /// <reference path="../vendor/express/express.d.ts" />
+/// <reference path="../vendor/underscore/underscore.d.ts" />
 
 import http = require("http");
 
@@ -21,7 +22,7 @@ if (config.devMode) {
     app.use("/static/compiled", stylus.middleware({
         src: __dirname + "/../hashwick-webapp",
         dest: __dirname + "/static/compiled",
-        compile: (str, path) => stylus(str).set("filename", path).use(nib()),
+        compile: (str: string, path: string) => stylus(str).set("filename", path).use(nib()),
     }));
 
     app.use("/static", express.static(__dirname + "/static"));

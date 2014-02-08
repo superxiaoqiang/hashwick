@@ -180,7 +180,7 @@ export class InferLiveTickerDataSource extends LiveTickerDataSource {
     public prefetch() {
         var latest = time.serverNow();
         var earliest = new Date(latest.getTime() - 5 * 60 * 1000);
-        return Promise.settle([
+        return Promise.settle(<Promise<void>[]>[
             this.trades.prefetch(earliest, latest),
             this.depth.prefetch(),
         ]).then(() => { });

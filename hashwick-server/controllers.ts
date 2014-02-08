@@ -1,10 +1,11 @@
-var _ = require("underscore");
+import _ = require("underscore");
+import express = require("express");
 
 var assets = require("./assets");
 import config = require("./config");
 
 
-export function index(req: ExpressServerRequest, res: ExpressServerResponse) {
+export function index(req: express.Request, res: express.Response) {
     res.render("index", {
         assetURL: getAssetURL,
         js_config: {

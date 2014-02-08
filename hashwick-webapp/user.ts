@@ -45,7 +45,7 @@ interface SerializedExchangeAccount {
 
 function serializeUserData() {
     var accounts = _.map(currentUser.accounts, serializeExchangeAccount);
-    var layouts = {current: layout.serializeCurrentLayout()};
+    var layouts: { [name: string]: SerializedLayout; } = {current: layout.serializeCurrentLayout()};
 
     var data: SerializedUserData = {
         accounts: accounts,
@@ -90,7 +90,7 @@ export function init() {
     var token = localStorage.getItem("auth.token");
     if (!token) {
         setUser(null);
-        return Promise.fulfilled();
+        return Promise.fulfilled<void>();
     }
     return checkToken(token).then((data: LoginResponse) => {
         setUser(deserializeUser(data.response.username, token, data.response.data));

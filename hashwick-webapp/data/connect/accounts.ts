@@ -47,7 +47,7 @@ export class AccountLivePortfolioDataSource extends interfaces.LivePortfolioData
 
     public prefetch() {
         if (this.isUpToDate(this.interval))
-            return Promise.fulfilled();
+            return Promise.fulfilled<void>();
         return this.fetchUncached();
     }
 

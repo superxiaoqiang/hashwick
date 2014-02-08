@@ -1325,6 +1325,12 @@ interface JQuery {
     val(func: (index: number, value: any) => any): JQuery;
 
     /**
+     * Set one or more CSS properties for the set of matched elements.
+     *
+     * @param properties An object of property-value pairs to set.
+     */
+    css(properties: Object): JQuery;
+    /**
      * Get the value of style properties for the first element in the set of matched elements.
      *
      * @param propertyName A CSS property.
@@ -1372,12 +1378,6 @@ interface JQuery {
      * @param value A function returning the value to set. this is the current element. Receives the index position of the element in the set and the old value as arguments.
      */
     css(propertyName: string, value: (index: number, value: number) => number): JQuery;
-    /**
-     * Set one or more CSS properties for the set of matched elements.
-     *
-     * @param properties An object of property-value pairs to set.
-     */
-    css(properties: Object): JQuery;
 
     /**
      * Get the current computed height for the first element in the set of matched elements.

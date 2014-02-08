@@ -122,7 +122,7 @@ class Socketeer {
 }
 
 
-class Channel {
+export class Channel {
     public subscribed: boolean;
     public onOpen: () => void;
     public onMessage: (data: any) => void;
@@ -142,9 +142,9 @@ class Channel {
 var socketeer = new Socketeer();
 
 
-class SimpleCountingRealtimeMixin {
-    private log: Logger;
-    private realtime: number;
+export class SimpleCountingRealtimeMixin {
+    public log: Logger;
+    public realtime: number;
 
     constructor() {
         this.realtime = 0;
@@ -162,10 +162,10 @@ class SimpleCountingRealtimeMixin {
 }
 
 
-class ChannelSubscriptionRealtimeMixin {
-    private log: Logger;
-    private channel: Channel;
-    private realtime: number;
+export class ChannelSubscriptionRealtimeMixin {
+    public log: Logger;
+    public channel: Channel;
+    public realtime: number;
 
     constructor() {
         this.realtime = 0;
@@ -187,9 +187,10 @@ class ChannelSubscriptionRealtimeMixin {
 
 export class LiveTicker extends interfaces.LiveTickerDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
-    private log: Logger;
+    public log: Logger;
     private data: SnapshotData<Ticker>;
-    private channel: Channel;
+    public channel: Channel;
+    public realtime: number;
     private pendingPrefetch: boolean;
     private pendingPromise = new PendingPromise<void>();
 
@@ -235,9 +236,10 @@ export class LiveTicker extends interfaces.LiveTickerDataSource implements Chann
 
 export class RealtimeTrades extends interfaces.TradesDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
-    private log: Logger;
+    public log: Logger;
     private items: RangeCache<number, Trade>;
-    private channel: Channel;
+    public channel: Channel;
+    public realtime: number;
 
     constructor(marketID: string) {
         super();
@@ -266,9 +268,9 @@ export class RealtimeTrades extends interfaces.TradesDataSource implements Chann
 
 
 export class HistoricalTrades extends interfaces.TradesDataSource implements SimpleCountingRealtimeMixin {
-    private realtime: number;
+    public realtime: number;
     private marketID: string;
-    private log: Logger;
+    public log: Logger;
     private items: RangeCache<number, Trade>;
     private channel: Channel;
     private pendingPromise = new PendingPromise<void>();
@@ -353,7 +355,7 @@ export class Candles extends interfaces.OHLCVDataSource {
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.Candles:" + marketID);
 
-        this.items = _.object(_.map([60], period => {
+        this.items = <{ [period: number]: RangeCache<number, Candle>; }>_.object(_.map([60], period => {
             var container = new RangeCache<number, Candle>(
                 this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this, period));
             container.gotData.attach(this.gotData.emit.bind(this.gotData));
@@ -427,9 +429,10 @@ export class Candles extends interfaces.OHLCVDataSource {
 
 export class LiveDepth extends interfaces.LiveDepthDataSource implements ChannelSubscriptionRealtimeMixin {
     private marketID: string;
-    private log: Logger;
+    public log: Logger;
     private data: SnapshotData<DepthData>;
-    private channel: Channel;
+    public channel: Channel;
+    public realtime: number;
     private pendingPrefetch: boolean;
     private pendingPromise = new PendingPromise<void>();
 

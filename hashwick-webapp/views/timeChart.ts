@@ -159,7 +159,7 @@ class ChartView implements View {
     private calculatePlotSizes() {
         var all = this.calculateAllPlotsSize();
 
-        var totalHeightWeight = _.reduce(this.plots, (a, p) => a + p.heightWeight, 0);
+        var totalHeightWeight = _.reduce<Plot, number>(this.plots, (a, p) => a + p.heightWeight, 0);
 
         var curHeightWeight = 0;
         _.each(this.plots, plot => {

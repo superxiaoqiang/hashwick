@@ -132,7 +132,7 @@ class SplitHorizontalPane extends SplitPane implements paneDefs.Pane {
     }
 
     public calculatePaneSizes() {
-        var totalSizeWeight = _.reduce(this.children, (a, c) => a + c.sizeWeight, 0);
+        var totalSizeWeight = _.reduce<SplitPaneChild, number>(this.children, (a, c) => a + c.sizeWeight, 0);
         var totalHeight = this.paneElement.height();
         var curSizeWeight = 0;
         _.each(this.children, child => {
@@ -156,7 +156,7 @@ class SplitVerticalPane extends SplitPane implements paneDefs.Pane {
     }
 
     public calculatePaneSizes() {
-        var totalSizeWeight = _.reduce(this.children, (a, c) => a + c.sizeWeight, 0);
+        var totalSizeWeight = _.reduce<SplitPaneChild, number>(this.children, (a, c) => a + c.sizeWeight, 0);
         var totalWidth = this.paneElement.width();
         var curSizeWeight = 0;
         _.each(this.children, child => {

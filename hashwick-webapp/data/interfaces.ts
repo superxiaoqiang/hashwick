@@ -41,8 +41,8 @@ export class SnapshotDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(): Promise<void> {
-        return Promise.fulfilled();
+    public prefetch() {
+        return Promise.fulfilled<void>();
     }
 }
 
@@ -54,8 +54,8 @@ export class TemporalDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(earliest: Date, latest: Date): Promise<void> {
-        return Promise.fulfilled();
+    public prefetch(earliest: Date, latest: Date) {
+        return Promise.fulfilled<void>();
     }
 }
 
@@ -67,8 +67,8 @@ export class PeriodicTemporalDataSource<T> extends DataSource {
         throw 0;
     }
 
-    public prefetch(earliest: Date, latest: Date, period: number): Promise<void> {
-        return Promise.fulfilled();
+    public prefetch(earliest: Date, latest: Date, period: number) {
+        return Promise.fulfilled<void>();
     }
 }
 

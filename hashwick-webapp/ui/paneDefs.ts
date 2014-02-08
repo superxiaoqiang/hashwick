@@ -8,7 +8,6 @@ export interface PaneClass {
 }
 
 export interface Pane {
-    type: string;
     paneElement: JQuery;
 
     serialize(context: context.SerializationContext): SerializedPane;

@@ -41,7 +41,7 @@ export function setLayout(structure: SerializedLayout) {
         structure = layoutPresets.defaultLayout;
     var context = new DeserializationContext(structure.markets, structure.dataSources);
     var rootPane = deserializePane(context, structure.rootPane);
-    canvas.html(rootPane.paneElement);
+    canvas.empty().append(rootPane.paneElement);
     rootPane.doLayout();
     showKnobs(context, structure.knobs);
     curLayout = {
