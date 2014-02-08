@@ -235,9 +235,9 @@ class ChartView implements View {
             .attr("transform", "translate(" + plot.left + "," + plot.top + ")");
     }
 
-    private makeYGrid(canvas: D3.Selection, plot: Plot) {
+    private makeYGrid(canvas: D3.Selection, plot: Plot, ticks: number[]) {
         return canvas.selectAll(null)
-            .data(axes.makeYTicks(plot.yScale))
+            .data(ticks)
             .enter().append("g")
                 .attr("transform", (t: any) => "translate(0," + plot.yScale(t) + ")");
     }
@@ -245,7 +245,7 @@ class ChartView implements View {
     private drawGridlines(plot: Plot) {
         var canvas = this.makeCanvas(plot);
         this.svg.node().appendChild(canvas.node());
-        var yGrid = this.makeYGrid(canvas, plot);
+        var yGrid = this.makeYGrid(canvas, plot, axes.makeYTicks(plot.yScale));
         yGrid.append("line").attr({class: "gridline", x1: 0, y1: 0, x2: plot.width, y2: 0});
     }
 
@@ -263,7 +263,8 @@ class ChartView implements View {
     private drawAxes(plot: Plot) {
         var canvas = this.makeCanvas(plot);
         this.svg.node().appendChild(canvas.node());
-        var yGrid = this.makeYGrid(canvas, plot);
+        var yTicks = axes.makeYTicks(plot.yScale);
+        var yGrid = this.makeYGrid(canvas, plot, yTicks);
 
         canvas.append("line")
             .attr({class: "axis", x1: 0, y1: 0, x2: 0, y2: plot.height});
@@ -275,7 +276,7 @@ class ChartView implements View {
         yGrid.append("text")
             .attr({class: "gridline-label", "text-anchor": "end",
                    transform: "translate(-" + (this.tickSize + 2) + ",6)"})
-            .text(axes.scaleFormatter(yGrid));
+            .text(axes.scaleFormatter(yTicks));
     }
 }
 

@@ -18,9 +18,9 @@ export function makeYTicks(scale: { range(): number[]; ticks(count: number): any
     return scale.ticks(numTicks);
 }
 
-export function scaleFormatter(scale: { [index: number]: number; length: number; }) {
-    var max = Math.max(scale[0], scale[scale.length - 1]);
-    var delta = Math.abs(scale[1] - scale[0]);
+export function scaleFormatter(ticks: { [index: number]: number; length: number; }) {
+    var max = Math.max(ticks[0], ticks[ticks.length - 1]);
+    var delta = Math.abs(ticks[1] - ticks[0]);
     var mag = Math.floor(math.log2(delta, 10));
     if (max >= 1000 && mag >= 2) {
         return function (n: number) {
