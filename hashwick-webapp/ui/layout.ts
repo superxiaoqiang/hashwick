@@ -96,7 +96,7 @@ class MarketExchangeKnob {
         _.each(markets.exchanges, exchange => {
             var item = $("<li>").append($('<a href="#"></a>')
                 .text(exchange.name)
-                .on("click", () => { this.setExchange(event, knob, exchange); }));
+                .on("click", event => { this.setExchange(event, knob, exchange); }));
             if (exchange === curExchange)
                 item.addClass("active");
             list.append(item);
