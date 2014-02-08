@@ -32,7 +32,7 @@ class PromiseScheduler {
 
     private getNextTask() {
         var now = Date.now();
-        return _.reduce(this.tasks, (acc, cur) => {
+        return _.reduce<Task, Task>(this.tasks, (acc, cur) => {
             if (!acc.lastRun)
                 return acc;
             if (!cur.lastRun)

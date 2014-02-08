@@ -17,9 +17,9 @@ export function request(module: HasRequest, options: any) {
 }
 
 export function readBody(response: http.ClientResponse) {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
         var data = "";
-        response.on("data", chunk => {
+        response.on("data", (chunk: string) => {
             data += chunk;
         });
         response.on("close", () => {

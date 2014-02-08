@@ -25,7 +25,7 @@ export class Database {
     public get_most_recent_ticker(market_id: number) {
         return this.query("SELECT * FROM ticker WHERE market_id = $1" +
                 " ORDER BY timestamp DESC LIMIT 1", [market_id])
-            .then(result => result.rows[0]);
+            .then(result => <Ticker>result.rows[0]);
     }
 
     public get_trade_by_id_from_exchange(market_id: number, id_from_exchange: string) {
@@ -37,7 +37,7 @@ export class Database {
     public get_most_recent_trade(market_id: number) {
         return this.query("SELECT * FROM trade WHERE market_id = $1" +
                 " ORDER BY timestamp DESC, id DESC LIMIT 1", [market_id])
-            .then(result => result.rows[0]);
+            .then(result => <Trade>result.rows[0]);
     }
 
     public stream_trades_starting_at(market_id: number, start: Date,
@@ -76,14 +76,14 @@ export class Database {
         return this.query("SELECT start FROM candle" +
                 " WHERE market_id = $1 AND timespan = $2" +
                 " ORDER BY start DESC", [market_id, timespan])
-            .then(result => result.rows[0]);
+            .then(result => <Candle>result.rows[0]);
     }
 
     public get_latest_depth_snapshot_timestamp(market_id: number) {
         return this.query("SELECT timestamp FROM depthsnapshotorder" +
                 " WHERE market_id = $1" +
                 " ORDER BY timestamp DESC LIMIT 1", [market_id])
-            .then(result => result.rows.length ? result.rows[0].timestamp : undefined);
+            .then(result => result.rows.length ? <Date>result.rows[0].timestamp : undefined);
     }
 
     public get_depth_snapshot_orders_at_timestamp(market_id: number, timestamp: Date) {

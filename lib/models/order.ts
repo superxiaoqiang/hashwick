@@ -3,7 +3,7 @@ class Order {
     public static ASK = 2;
     public static SIDE_MASK = 3;
 
-    constructor(public price: string, public amount: string) { }
+    constructor(public price: string, public amount: string, public flags?: number) { }
 }
 
 export = Order;
