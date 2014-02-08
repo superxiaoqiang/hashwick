@@ -65,5 +65,8 @@ export function slideReplaceHorz(former: JQuery, latter: JQuery, left?: boolean)
 }
 
 function afterTransition(element: JQuery, func: (event: Event) => void) {
-    element.one("webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend", func);
+    // TODO HACK
+    // transition code got borked somehow, this is a stopgap fix
+    //element.one("webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend", func);
+    setTimeout(func, 250);
 }
