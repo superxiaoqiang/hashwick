@@ -55,6 +55,35 @@ class Bitfinex extends Exchange {
         });
     }
 
+    public fetchLends(asset: string, since: Date) {
+        return httpx.request(https, {
+            host: "api.bitfinex.com",
+            path: "/v1/lends/" + encodeAsset(asset),
+            headers: this.requestHeaders({
+                timestamp: Math.floor(since.getTime() / 1000).toString(),
+            }),
+            rejectUnauthorized: false,
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            data.reverse();  // order from oldest to newest
+            return _.map(data, decodeLend);
+        });
+    }
+
+    public fetchLendBook(asset: string) {
+        return httpx.request(https, {
+            host: "api.bitfinex.com",
+            path: "/v1/lendbook/" + encodeAsset(asset),
+            headers: this.requestHeaders(),
+            rejectUnauthorized: false,
+        }).then(httpx.readBody).then(body => {
+            var data = JSON.parse(body);
+            return new OrderBook(
+                _.map(data.bids, decodeLendOffer),
+                _.map(data.asks, decodeLendOffer));
+        });
+    }
+
     private requestHeaders(payload?: any) {
         return payload && {
             "X-BFX-PAYLOAD": new Buffer(JSON.stringify(payload)).toString("base64")
@@ -62,6 +91,10 @@ class Bitfinex extends Exchange {
     }
 }
 
+
+function encodeAsset(asset: string) {
+    return asset.toLowerCase();
+}
 
 function encodePair(left: string, right: string) {
     return left.toLowerCase() + right.toLowerCase();
@@ -83,6 +116,14 @@ function decodeTrade(t: any) {
 
 function decodeOrder(o: any) {
     return new Order(o.price, o.amount);
+}
+
+function decodeLend(t: any) {
+    return new Trade(decodeTimestamp(t.timestamp), 0, "" + t.rate / 365, t.amount_lent);
+}
+
+function decodeLendOffer(o: any) {
+    return new Order("" + o.rate / 365, o.amount);
 }
 
 

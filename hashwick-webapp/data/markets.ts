@@ -214,6 +214,22 @@ export function init() {
             liveDepthDataSources: [
                 {source: new flugelhorn.LiveDepth("5")},
             ],
+        }, {
+            left: "USD",
+            right: "rate",
+            liveTickerDataSources: [
+                {source: new flugelhorn.LiveTicker("6")},
+            ],
+            tradesDataSources: [
+                {source: new flugelhorn.RealtimeTrades("6"), role: "realtime"},
+                {source: new flugelhorn.HistoricalTrades("6"), role: "historical"},
+            ],
+            ohlcvDataSources: [
+                {source: new flugelhorn.Candles("6"), role: "historical"},
+            ],
+            liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("6")},
+            ],
         }],
     }], makeExchange), xchg => xchg.id);
 }

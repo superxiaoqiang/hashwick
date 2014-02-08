@@ -476,6 +476,106 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
             }],
         },
     },
+}, {
+    name: "Bitfinex data",
+    layout: {
+        markets: [
+            {key: "0", name: "trades", item: {exchange: "5", left: "BTC", right: "USD"}},
+            {key: "1", name: "lending", item: {exchange: "5", left: "USD", right: "rate"}},
+        ],
+        dataSources: [
+            {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
+            {key: "lends", name: "lends", item: {type: "marketOHLCV", market: {key: "1"}}},
+            {key: "depth", name: "depth", item: {type: "marketLiveDepth", market: {key: "0"}}},
+            {key: "lendbook", name: "lendbook", item: {type: "marketLiveDepth", market: {key: "1"}}},
+            {key: "ticker", name: "ticker", item: {type: "marketLiveTicker", market: {key: "0"}}},
+            {key: "trades", name: "trades", item: {type: "marketTrades", market: {key: "0"}}},
+            {key: "ticks", name: "ticks", item: {type: "tradesToTicks", dataSource: {key: "trades"}}},
+        ],
+        knobs: [],
+        rootPane: {
+            type: "splitVert",
+            children: [{
+                pane: {
+                    type: "splitHorz",
+                    children: [{
+                        pane: {
+                            type: "view",
+                            view: {
+                                type: "timeChart",
+                                timespan: 12 * 60 * 60,
+                                plots: [{
+                                    heightWeight: 20,
+                                    series: [{
+                                        dataSource: {key: "ohlcv"},
+                                        painter: {type: "candlestick", period: 15 * 60},
+                                    }],
+                                }, {
+                                    heightWeight: 10,
+                                    series: [{
+                                        dataSource: {key: "lends"},
+                                        painter: {type: "candlestick", period: 15 * 60},
+                                    }],
+                                }],
+                                presets: timeChartPresets,
+                            },
+                        },
+                        sizeWeight: 1,
+                    }, {
+                        pane: {
+                            type: "splitVert",
+                            children: [{
+                                pane: {
+                                    type: "view",
+                                    view: {
+                                        type: "depthChart",
+                                        dataSource: {key: "depth"},
+                                    },
+                                },
+                                sizeWeight: 1,
+                            }, {
+                                pane: {
+                                    type: "view",
+                                    view: {
+                                        type: "depthChart",
+                                        dataSource: {key: "lendbook"},
+                                        spreadWidth: 0.5,
+                                    },
+                                },
+                                sizeWeight: 1,
+                            }],
+                        },
+                        sizeWeight: 1,
+                    }],
+                },
+                sizeWeight: 3,
+            }, {
+                pane: {
+                    type: "splitHorz",
+                    children: [{
+                        pane: {
+                            type: "view",
+                            view: {
+                                type: "simpleTicker",
+                                dataSource: {key: "ticker"},
+                            },
+                        },
+                        sizeWeight: 1,
+                    }, {
+                        pane: {
+                            type: "view",
+                            view: {
+                                type: "tradesScroller",
+                                dataSource: {key: "ticks"},
+                            },
+                        },
+                        sizeWeight: 3,
+                    }],
+                },
+                sizeWeight: 1,
+            }],
+        },
+    },
 }];
 
 export var defaultLayout = builtinLayoutPresets[0].layout;

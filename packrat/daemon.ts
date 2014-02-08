@@ -17,6 +17,7 @@ import aggregate = require("./lib/aggregate");
 import bookkeeper_ = require("./lib/bookkeeper");
 if (0) bookkeeper_;
 import Bookkeeper = bookkeeper_.Bookkeeper;
+import fetching = require("./lib/fetching");
 import database = require("./lib/database");
 import markets = require("./lib/markets");
 import RequestHandler = require("./lib/requestHandler");
@@ -69,6 +70,9 @@ function setupBookkeeper(db: database.Database, server: Flugelserver) {
     bitfinexScheduler.schedule(bookkeeper.fetchTicker.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 3 * 1000);
     bitfinexScheduler.schedule(bookkeeper.fetchTrades.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 2 * 1000);
     bitfinexScheduler.schedule(bookkeeper.fetchDepth.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 5 * 1000);
+    var bitfinexUSDrate = markets.get("bitfinex", "USD", "rate");
+    bitfinexScheduler.schedule(() => fetching.fetchLends(db, server, bitfinexUSDrate, bitfinex.fetchLends.bind(bitfinex)), 15 * 1000);
+    bitfinexScheduler.schedule(() => fetching.fetchLendBook(db, server, bitfinexUSDrate, bitfinex.fetchLendBook.bind(bitfinex)), 30 * 1000);
 }
 
 function setupPeriodicJobs(db: database.Database) {
