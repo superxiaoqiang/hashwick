@@ -11,6 +11,7 @@ import Bitfinex = require("../lib/exchanges/bitfinex");
 import Bitstamp = require("../lib/exchanges/bitstamp");
 import BTCE = require("../lib/exchanges/btce");
 import MtGox = require("../lib/exchanges/mtgox");
+import PromiseScheduler = require("../lib/promiseScheduler");
 import config = require("./config");
 import aggregate = require("./lib/aggregate");
 import bookkeeper_ = require("./lib/bookkeeper");
@@ -40,42 +41,34 @@ database.connect(config.database).then(db => {
 
 function setupBookkeeper(db: database.Database, server: Flugelserver) {
     var bookkeeper = new Bookkeeper(db, server);
-    bookkeeper.add({
-        exchange: new MtGox(),
-        market: markets.get("mtgox", "BTC", "USD"),
-        pollSchedulingGroup: "mtgox",
-        pollSchedulingGroupMinDelay: 2 * 1000,
-        tickerPollRate: 3 * 1000,
-        tradesPollRate: 2 * 1000,
-        depthPollRate: 5 * 1000,
-    });
-    bookkeeper.add({
-        exchange: new BTCE(),
-        market: markets.get("btce", "BTC", "USD"),
-        pollSchedulingGroup: "btce",
-        pollSchedulingGroupMinDelay: 2 * 1000,
-        tickerPollRate: 3 * 1000,
-        tradesPollRate: 2 * 1000,
-        depthPollRate: 5 * 1000,
-    });
-    bookkeeper.add({
-        exchange: new Bitstamp(),
-        market: markets.get("bitstamp", "BTC", "USD"),
-        pollSchedulingGroup: "bitstamp",
-        pollSchedulingGroupMinDelay: 2 * 1000,
-        tickerPollRate: 3 * 1000,
-        tradesPollRate: 2 * 1000,
-        depthPollRate: 5 * 1000,
-    });
-    bookkeeper.add({
-        exchange: new Bitfinex(),
-        market: markets.get("bitfinex", "BTC", "USD"),
-        pollSchedulingGroup: "bitfinex",
-        pollSchedulingGroupMinDelay: 2 * 1000,
-        tickerPollRate: 3 * 1000,
-        tradesPollRate: 2 * 1000,
-        depthPollRate: 5 * 1000,
-    });
+
+    var mtgoxScheduler = new PromiseScheduler(2 * 1000);
+    var mtgox = new MtGox();
+    var mtgoxBTCUSD = markets.get("mtgox", "BTC", "USD");
+    mtgoxScheduler.schedule(bookkeeper.fetchTicker.bind(bookkeeper, mtgox, mtgoxBTCUSD), 3 * 1000);
+    mtgoxScheduler.schedule(bookkeeper.fetchTrades.bind(bookkeeper, mtgox, mtgoxBTCUSD), 2 * 1000);
+    mtgoxScheduler.schedule(bookkeeper.fetchDepth.bind(bookkeeper, mtgox, mtgoxBTCUSD), 5 * 1000);
+
+    var btceScheduler = new PromiseScheduler(2 * 1000);
+    var btce = new BTCE();
+    var btceBTCUSD = markets.get("btce", "BTC", "USD");
+    btceScheduler.schedule(bookkeeper.fetchTicker.bind(bookkeeper, btce, btceBTCUSD), 3 * 1000);
+    btceScheduler.schedule(bookkeeper.fetchTrades.bind(bookkeeper, btce, btceBTCUSD), 2 * 1000);
+    btceScheduler.schedule(bookkeeper.fetchDepth.bind(bookkeeper, btce, btceBTCUSD), 5 * 1000);
+
+    var bitstampScheduler = new PromiseScheduler(2 * 1000);
+    var bitstamp = new Bitstamp();
+    var bitstampBTCUSD = markets.get("bitstamp", "BTC", "USD");
+    bitstampScheduler.schedule(bookkeeper.fetchTicker.bind(bookkeeper, bitstamp, bitstampBTCUSD), 3 * 1000);
+    bitstampScheduler.schedule(bookkeeper.fetchTrades.bind(bookkeeper, bitstamp, bitstampBTCUSD), 2 * 1000);
+    bitstampScheduler.schedule(bookkeeper.fetchDepth.bind(bookkeeper, bitstamp, bitstampBTCUSD), 5 * 1000);
+
+    var bitfinexScheduler = new PromiseScheduler(2 * 1000);
+    var bitfinex = new Bitfinex();
+    var bitfinexBTCUSD = markets.get("bitfinex", "BTC", "USD");
+    bitfinexScheduler.schedule(bookkeeper.fetchTicker.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 3 * 1000);
+    bitfinexScheduler.schedule(bookkeeper.fetchTrades.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 2 * 1000);
+    bitfinexScheduler.schedule(bookkeeper.fetchDepth.bind(bookkeeper, bitfinex, bitfinexBTCUSD), 5 * 1000);
 }
 
 function setupPeriodicJobs(db: database.Database) {

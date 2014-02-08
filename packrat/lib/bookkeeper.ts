@@ -2,7 +2,6 @@ import _ = require("underscore");
 import Promise = require("bluebird");
 
 import Logger = require("../../lib/logger");
-import PromiseScheduler = require("../../lib/promiseScheduler");
 import serializers = require("../../lib/serializers");
 import Exchange = require("../../lib/exchanges/exchange");
 import Market = require("../../lib/models/market");
@@ -17,100 +16,70 @@ import Flugelserver = require("./server");
 var log = new Logger("packrat.lib.bookkeeper");
 
 
-export interface ExchangeInfo {
-    exchange: Exchange;
-    market: Market;
-    pollSchedulingGroup: string;
-    pollSchedulingGroupMinDelay: number;
-    tickerPollRate?: number;
-    tradesPollRate?: number;
-    depthPollRate?: number;
-}
-
-
 export class Bookkeeper {
-    private infos: ExchangeInfo[] = [];
-    private schedulers: PromiseScheduler[] = [];
-
     constructor(private db: database.Database, private server: Flugelserver) { }
 
-    public add(info: ExchangeInfo) {
-        this.infos.push(info);
-        var scheduler = this.schedulers[info.pollSchedulingGroup];
-        if (!scheduler) {
-            scheduler = this.schedulers[info.pollSchedulingGroup] =
-                new PromiseScheduler(info.pollSchedulingGroupMinDelay);
-        }
-
-        if (info.tickerPollRate)
-            scheduler.schedule(this.fetchTicker.bind(this, info), info.tickerPollRate);
-        if (info.tradesPollRate)
-            scheduler.schedule(this.fetchTrades.bind(this, info), info.tradesPollRate);
-        if (info.depthPollRate)
-            scheduler.schedule(this.fetchDepth.bind(this, info), info.depthPollRate);
-    }
-
-    private fetchTicker(info: ExchangeInfo) {
-        log.debug(info.market.describe() + " - fetching ticker");
-        return info.exchange.fetchTicker(info.market.left, info.market.right).then(ticker => {
-            log.debug(info.market.describe() + " - got ticker");
-            this.streamTicker(info.market, ticker);
-            this.db.insert_ticker(info.market.id, ticker).done();
+    public fetchTicker(exchange: Exchange, market: Market) {
+        log.debug(market.describe() + " - fetching ticker");
+        return exchange.fetchTicker(market.left, market.right).then(ticker => {
+            log.debug(market.describe() + " - got ticker");
+            this.streamTicker(market, ticker);
+            this.db.insert_ticker(market.id, ticker).done();
         }, err => {
-            log.error(info.market.describe() + " - error fetching ticker: " + err);
+            log.error(market.describe() + " - error fetching ticker: " + err);
         });
     }
 
-    private fetchTrades(info: ExchangeInfo) {
+    public fetchTrades(exchange: Exchange, market: Market) {
         var numTrades: number;
-        return this.db.get_most_recent_trade(info.market.id).then(mostRecentTrade => {
-            var since = this.getTradesFetchStart(info, mostRecentTrade);
-            log.debug(info.market.describe() + " - fetching trades since " + since.toISOString());
-            return info.exchange.fetchTrades(info.market.left, info.market.right, since);
+        return this.db.get_most_recent_trade(market.id).then(mostRecentTrade => {
+            var since = this.getTradesFetchStart(market, mostRecentTrade);
+            log.debug(market.describe() + " - fetching trades since " + since.toISOString());
+            return exchange.fetchTrades(market.left, market.right, since);
         }).then((trades: Trade[]) => {
             if (trades.length) {
                 var diff = trades[trades.length - 1].timestamp.getTime() - new Date().getTime();
                 if (diff > 0)
-                    log.info(info.market.describe() + " - last received trade is " +
+                    log.info(market.describe() + " - last received trade is " +
                         diff / 1000 + " sec in the future");
             }
 
             numTrades = trades.length;
-            return this.filterTradesToUnseen(info.market, trades);
+            return this.filterTradesToUnseen(market, trades);
         }).then((trades: Trade[]): any => {
-            var message = info.market.describe() + " - received " + numTrades + " trades, " +
+            var message = market.describe() + " - received " + numTrades + " trades, " +
                 trades.length + " of which are new";
             if (trades.length)
                 message += ", from " + trades[0].timestamp.toISOString() + " to " +
                     trades[trades.length - 1].timestamp.toISOString();
             log.debug(message);
 
-            this.streamTrades(info.market, trades);
+            this.streamTrades(market, trades);
             _.each(trades, trade => {
-                this.db.insert_trade(info.market.id, trade).done();
+                this.db.insert_trade(market.id, trade).done();
             });
         }, (err: any) => {
-            log.error(info.market.describe() + " - error fetching trades: " + err);
+            log.error(market.describe() + " - error fetching trades: " + err);
         });
     }
 
-    private fetchDepth(info: ExchangeInfo) {
-        log.debug(info.market.describe() + " - fetching depth");
-        return info.exchange.fetchOrderBook(info.market.left, info.market.right).then(orderBook => {
-            log.debug(info.market.describe() + " - got depth, " + orderBook.bids.length +
+    public fetchDepth(exchange: Exchange, market: Market) {
+        log.debug(market.describe() + " - fetching depth");
+        return exchange.fetchOrderBook(market.left, market.right).then(orderBook => {
+            log.debug(market.describe() + " - got depth, " + orderBook.bids.length +
                 " bids, " + orderBook.asks.length + " asks");
-            this.streamOrderBook(info.market, orderBook);
-            this.storeOrderBook(info.market, orderBook, new Date());
+            this.streamOrderBook(market, orderBook);
+            this.storeOrderBook(market, orderBook, new Date());
         }, err => {
-            log.error(info.market.describe() + " - error fetching depth: " + err);
+            log.error(market.describe() + " - error fetching depth: " + err);
         });
     }
 
-    private getTradesFetchStart(info: ExchangeInfo, mostRecentTrade: Trade) {
+    private getTradesFetchStart(market: Market, mostRecentTrade: Trade) {
         var maxGap = 60 * 60 * 1000;
         if (mostRecentTrade) {
             if (Date.now() - mostRecentTrade.timestamp.getTime() > maxGap)
-                log.attentionRequired(info.market.describe() +
+                log.attentionRequired(market.describe() +
                     " - no trades stored since " + mostRecentTrade.timestamp.toISOString() +
                     ", you may need to check what's up");
             else
