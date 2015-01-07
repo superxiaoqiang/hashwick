@@ -25,7 +25,7 @@ var timeChartPresets = [{
 export var builtinLayoutPresets: LayoutPreset[] = [{
     name: "Bitcoinity",
     layout: {
-        markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
+        markets: [{key: "0", name: "default", item: {exchange: "5", left: "BTC", right: "USD"}}],
         dataSources: [
             {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
             {key: "depth", name: "depth", item: {type: "marketLiveDepth", market: {key: "0"}}},
@@ -101,8 +101,8 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     name: "Compare 2",
     layout: {
         markets: [
-            {key: "0", name: "1", item: {exchange: "1", left: "BTC", right: "USD"}},
-            {key: "1", name: "2", item: {exchange: "4", left: "BTC", right: "USD"}},
+            {key: "0", name: "1", item: {exchange: "5", left: "BTC", right: "USD"}},
+            {key: "1", name: "2", item: {exchange: "3", left: "BTC", right: "USD"}},
         ],
         knobs: [
             {type: "market.exchange", key: "0"},
@@ -174,9 +174,9 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     name: "Wide Compare 3",
     layout: {
         markets: [
-            {key: "0", name: "1", item: {exchange: "1", left: "BTC", right: "USD"}},
-            {key: "1", name: "2", item: {exchange: "4", left: "BTC", right: "USD"}},
-            {key: "2", name: "3", item: {exchange: "5", left: "BTC", right: "USD"}},
+            {key: "0", name: "1", item: {exchange: "5", left: "BTC", right: "USD"}},
+            {key: "1", name: "2", item: {exchange: "3", left: "BTC", right: "USD"}},
+            {key: "2", name: "3", item: {exchange: "4", left: "BTC", right: "USD"}},
         ],
         knobs: [
             {type: "market.exchange", key: "0"},
@@ -349,7 +349,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
     name: "Indicators",
     layout: {
         markets: [
-            {key: "0", name: "default", item: {exchange: "1", left: "BTC", right: "USD"}},
+            {key: "0", name: "default", item: {exchange: "5", left: "BTC", right: "USD"}},
         ],
         knobs: [
             {type: "market.exchange", key: "0"},
@@ -415,7 +415,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
 }, {
     name: "Giant candles",
     layout: {
-        markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
+        markets: [{key: "0", name: "default", item: {exchange: "5", left: "BTC", right: "USD"}}],
         dataSources: [
             {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
         ],
@@ -441,7 +441,7 @@ export var builtinLayoutPresets: LayoutPreset[] = [{
 }, {
     name: "Candles + console",
     layout: {
-        markets: [{key: "0", name: "default", item: {exchange: "4", left: "BTC", right: "USD"}}],
+        markets: [{key: "0", name: "default", item: {exchange: "5", left: "BTC", right: "USD"}}],
         dataSources: [
             {key: "ohlcv", name: "ohlcv", item: {type: "marketOHLCV", market: {key: "0"}}},
         ],
