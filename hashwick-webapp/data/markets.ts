@@ -134,10 +134,33 @@ export function init() {
                 {source: new flugelhorn.LiveDepth("1")},
             ],
         }],
-    }, /*{
+    }, {
         id: "2",
         name: "Bitfloor",
-    },*/ {
+        defaultShortName: "f",
+        credentials: [
+            {key: "apiKey", label: "API Key"},
+            {key: "secret", label: "Secret"},
+        ],
+        credentialsURL: "https://www.bitfloor.com/",
+        markets: [{
+            left: "BTC",
+            right: "USD",
+            liveTickerDataSources: [
+                {source: new flugelhorn.LiveTicker("0")},
+            ],
+            tradesDataSources: [
+                {source: new flugelhorn.RealtimeTrades("0"), role: "realtime"},
+                {source: new flugelhorn.HistoricalTrades("0"), role: "historical"},
+            ],
+            ohlcvDataSources: [
+                {source: new flugelhorn.Candles("0"), role: "historical"},
+            ],
+            liveDepthDataSources: [
+                {source: new flugelhorn.LiveDepth("0")},
+            ],
+        }],
+    }, {
         id: "3",
         name: "BTC-E",
         defaultShortName: "e",
@@ -193,7 +216,7 @@ export function init() {
     }, {
         id: "5",
         name: "Bitfinex",
-        defaultShortName: "f",
+        defaultShortName: "x",
         credentials: [
             {key: "apiKey", label: "API Key"},
             {key: "secret", label: "Secret"},
