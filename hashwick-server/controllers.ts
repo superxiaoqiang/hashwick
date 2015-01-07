@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 import express = require("express");
 
 var assets = require("./assets");
@@ -10,7 +10,7 @@ export function index(req: express.Request, res: express.Response) {
         assetURL: getAssetURL,
         js_config: {
             flugelhornSocket: config.flugelhornSocket,
-            themes: _.object(_.map(config.themes, (file, name) =>
+            themes: (<any>_.object)(_.map(config.themes, (file, name) =>
                 [name, getAssetURL("/static/compiled/theme." + file + ".css")])),
         },
     });

@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 import WebSocket = require("ws");
 
 

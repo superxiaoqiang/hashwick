@@ -1,7 +1,7 @@
 /// <reference path="../vendor/bluebird/bluebird.d.ts" />
 /// <reference path="../vendor/d3/d3.d.ts" />
 /// <reference path="../vendor/jquery/jquery.d.ts" />
-/// <reference path="../vendor/underscore/underscore.d.ts" />
+/// <reference path="../vendor/lodash/lodash.d.ts" />
 
 import config = require("./config");
 import logger_ = require("./logger");
@@ -19,8 +19,8 @@ if (0) views;
 
 function run(conf: any) {
     _.extend(config, conf);
-    config.pageLoadServerTime = window["HashWick_serverTime"];
-    config.pageLoadClientTime = window["HashWick_clientTime"];
+    config.pageLoadServerTime = (<any>window)["HashWick_serverTime"];
+    config.pageLoadClientTime = (<any>window)["HashWick_clientTime"];
 
     var log = new Logger("app");
     log.info("Starting\u2026");
@@ -41,4 +41,4 @@ function logTimeInfo(log: Logger) {
     log.info("client local time is " + new Date().toString());
 }
 
-window["HashWick"] = {run: run};
+(<any>window)["HashWick"] = {run: run};

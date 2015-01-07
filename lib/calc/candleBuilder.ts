@@ -40,17 +40,18 @@ class CandleBuilder {
             this.sendCandle();
     }
 
+    // one func for both sides was a dumb, unwieldy idea; this should be split into separate buy/sell funcs
     private addToSide(side: string, price: number, amount: number) {
-        if (this.candle[side + "_open"] === undefined)
-            this.candle[side + "_open"] = price;
-            this.candle[side + "_close"] = price;
-        if (this.candle[side + "_low"] === undefined || price < this.candle[side + "_low"])
-            this.candle[side + "_low"] = price;
-        if (this.candle[side + "_high"] === undefined || price > this.candle[side + "_high"])
-            this.candle[side + "_high"] = price;
-            this.candle[side + "_volume"] += amount;
-            this[side + "_opposingVolume"] += amount * price;
-        ++this.candle[side + "_count"];
+        if ((<any>this.candle)[side + "_open"] === undefined)
+            (<any>this.candle)[side + "_open"] = price;
+            (<any>this.candle)[side + "_close"] = price;
+        if ((<any>this.candle)[side + "_low"] === undefined || price < (<any>this.candle)[side + "_low"])
+            (<any>this.candle)[side + "_low"] = price;
+        if ((<any>this.candle)[side + "_high"] === undefined || price > (<any>this.candle)[side + "_high"])
+            (<any>this.candle)[side + "_high"] = price;
+        (<any>this.candle)[side + "_volume"] += amount;
+        (<any>this)[side + "_opposingVolume"] += amount * price;
+        ++(<any>this.candle)[side + "_count"];
     }
 
     private checkBoundary(timestamp: Date) {

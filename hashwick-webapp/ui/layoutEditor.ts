@@ -159,7 +159,7 @@ class ArenaPoint {
         this.editor = editor;
 
         var sizeCSS = this.edge === "top" || this.edge === "bottom"
-            ? <any>{width: this.size} : {height: this.size};
+            ? <Object>{width: this.size} : {height: this.size};
 
         this.element = $('<div class="layout-editor-insert-bar">')
             .addClass(this.edge)

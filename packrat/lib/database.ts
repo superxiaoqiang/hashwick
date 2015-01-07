@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 import pg = require("pg");
 import Promise = require("bluebird");
 

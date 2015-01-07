@@ -11,6 +11,7 @@ import DeserializationContext = context_.DeserializationContext;
 import SerializationContext = context_.SerializationContext;
 import dataStack_ = require("./dataStack");
 if (0) dataStack_;
+import PeriodicTemporalDataStack = dataStack_.PeriodicTemporalDataStack;
 import SnapshotDataStack = dataStack_.SnapshotDataStack;
 import TemporalDataStack = dataStack_.TemporalDataStack;
 import interfaces = require("./interfaces");
@@ -156,7 +157,7 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
 
     private market: Capsule<Market>;
     private log: Logger;
-    private dataStack: TemporalDataStack<Candle>;
+    private dataStack: PeriodicTemporalDataStack<Candle>;
 
     public static deserialize(context: DeserializationContext, structure: SerializedMarketOHLCVDataSource) {
         var market = context.unsealMarket(structure.market);
@@ -169,7 +170,7 @@ class MarketOHLCVDataSource extends interfaces.OHLCVDataSource {
 
         this.log = new Logger("data.marketData.MarketOHLCVDataSource:" + market.item.cacheKey());
 
-        this.dataStack = new TemporalDataStack<Candle>(this.format);
+        this.dataStack = new PeriodicTemporalDataStack<Candle>(this.format);
         this.dataStack.gotData.attach(this.gotData.emit.bind(this.gotData));
         _.each(market.item.ohlcvDataSources, dataSource => {
             this.dataStack.addSource(dataSource);

@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 
 import serializers = require("../../lib/serializers");
 import Candle = require("../../lib/models/candle");

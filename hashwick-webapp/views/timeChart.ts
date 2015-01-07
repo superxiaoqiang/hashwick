@@ -292,7 +292,7 @@ class Plot {
     xMax: Date;
     yMin: number;
     yMax: number;
-    yScale: D3.Scale.QuantitiveScale;
+    yScale: D3.Scale.QuantitativeScale;
 
     public serialize(context: SerializationContext) {
         return {
@@ -352,8 +352,9 @@ function deserializePlot(context: DeserializationContext, structure: SerializedP
 
 function applyChangesToSerializedPlot(plot: SerializedPlot, changes: { [key: string]: any; }) {
     _.each(plot.series, series => {
+        // HACK
         if ("period" in changes && "period" in series.painter)
-            series.painter["period"] = changes["period"];
+            (<any>series.painter)["period"] = changes["period"];
     });
 }
 

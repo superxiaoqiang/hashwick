@@ -355,7 +355,7 @@ export class Candles extends interfaces.OHLCVDataSource {
         this.marketID = marketID;
         this.log = new Logger("data.connect.flugelhorn.Candles:" + marketID);
 
-        this.items = <{ [period: number]: RangeCache<number, Candle>; }>_.object(_.map([60], period => {
+        this.items = <{ [period: number]: RangeCache<number, Candle>; }>(<any>_.object)(_.map([60], period => {
             var container = new RangeCache<number, Candle>(
                 this.format.sortKey, this.format.uniqueKey, this.doRequest.bind(this, period));
             container.gotData.attach(this.gotData.emit.bind(this.gotData));

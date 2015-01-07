@@ -201,7 +201,7 @@ class DepthChartView implements View {
         return "M" + points.join("L");
     }
 
-    private drawXAxis(pos: Rectangle, xScale: D3.Scale.QuantitiveScale, bid: number, ask: number) {
+    private drawXAxis(pos: Rectangle, xScale: D3.Scale.QuantitativeScale, bid: number, ask: number) {
         var xTicks = axes.makeXTicks(xScale);
         //var midpoint = (bid + ask) / 2;
         //xTicks.push(midpoint);
@@ -220,7 +220,7 @@ class DepthChartView implements View {
             .attr({class: "gridline-label", "text-anchor": "middle", transform: "translate(0,24)"});
     }
 
-    private drawYAxis(pos: Rectangle, yScale: D3.Scale.QuantitiveScale) {
+    private drawYAxis(pos: Rectangle, yScale: D3.Scale.QuantitativeScale) {
         var ticks = axes.makeYTicks(yScale);
         var grid = this.svg.selectAll(null)
             .data(ticks)
@@ -235,7 +235,7 @@ class DepthChartView implements View {
     }
 
     private showWallBox(wall: Wall, bid: boolean, plot: Rectangle,
-                        xScale: D3.Scale.QuantitiveScale, yScale: D3.Scale.QuantitiveScale) {
+                        xScale: D3.Scale.QuantitativeScale, yScale: D3.Scale.QuantitativeScale) {
         var margin = 4;
         var cutoff = plot.width * (bid ? 1/4 : 3/4);
         var align = xScale(wall.price) > cutoff ? "right" : "left";
@@ -250,7 +250,7 @@ class DepthChartView implements View {
             html = '<span class="text-muted">(' + strings.formatNumberSigFigs(wall.price, sigFigs) + ")</span> " +
                 strings.formatNumberSigFigs(wall.amount, sigFigs);
         }
-        this.infoDiv.append($('<div class="wall-infobox"></div>').css(css).html(html));
+        this.infoDiv.append($('<div class="wall-infobox"></div>').css(<Object>css).html(html));
     }
 }
 

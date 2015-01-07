@@ -39,11 +39,11 @@ export function randomGibberish() {
 }
 
 export function uniquifyNumericallyParenthetically(key: string, pool: string[]) {
-    if (!_.contains(key, pool))
+    if (!_.contains(pool, key))
         return key
     for (var i = 1; ; ++i) {
         var newKey = key + " (" + i + ")";
-        if (!_.contains(newKey, pool))
+        if (!_.contains(pool, newKey))
             return newKey;
     }
 }

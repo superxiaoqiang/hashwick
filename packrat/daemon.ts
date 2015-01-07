@@ -1,10 +1,10 @@
 /// <reference path="../vendor/bluebird/bluebird.d.ts" />
 /// <reference path="../vendor/node/node.d.ts" />
 /// <reference path="../vendor/pg/pg.d.ts" />
-/// <reference path="../vendor/underscore/underscore.d.ts" />
+/// <reference path="../vendor/lodash/lodash.d.ts" />
 /// <reference path="../vendor/ws/ws.d.ts" />
 
-import _ = require("underscore");
+import _ = require("lodash");
 
 import Logger = require("../lib/logger");
 import Bitfinex = require("../lib/exchanges/bitfinex");

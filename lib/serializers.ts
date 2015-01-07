@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 
 import Candle = require("./models/candle");
 import Order = require("./models/order");

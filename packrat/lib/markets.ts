@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 
 import Market = require("../../lib/models/market");
 

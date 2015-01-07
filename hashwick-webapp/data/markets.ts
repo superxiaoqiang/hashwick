@@ -3,6 +3,7 @@ import dataStack_ = require("./dataStack");
 if (0) dataStack_;
 import SnapshotDataStackSourceInfo = dataStack_.SnapshotDataStackSourceInfo;
 import TemporalDataStackSourceInfo = dataStack_.TemporalDataStackSourceInfo;
+import PeriodicTemporalDataStackSourceInfo = dataStack_.PeriodicTemporalDataStackSourceInfo;
 import marketData = require("./marketData");
 import models_ = require("./models");
 if (0) models_;
@@ -40,7 +41,7 @@ export class Market {
     description: string;
     liveTickerDataSources: SnapshotDataStackSourceInfo<Ticker>[];
     tradesDataSources: TemporalDataStackSourceInfo<Trade>[];
-    ohlcvDataSources: TemporalDataStackSourceInfo<Candle>[];
+    ohlcvDataSources: PeriodicTemporalDataStackSourceInfo<Candle>[];
     liveDepthDataSources: SnapshotDataStackSourceInfo<DepthData>[];
 
     public serialize(): SerializedMarket {
@@ -78,13 +79,13 @@ export function getMarket(exchange: Exchange, left: string, right: string) {
 
 
 function makeExchange(structure: any) {
-    var exchange = _.extend(new Exchange(), structure);
+    var exchange = <Exchange>_.extend(new Exchange(), structure);
     exchange.markets = _.map(structure.markets, (market: any) => makeMarket(exchange, market));
     return exchange;
 }
 
 function makeMarket(exchange: Exchange, structure: any) {
-    var ret = _.extend(new Market(), {
+    var ret = <Market>_.extend(new Market(), {
         exchange: exchange,
         description: exchange.name + " " + structure.left + "/" + structure.right,
     }, structure);

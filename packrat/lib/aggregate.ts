@@ -1,4 +1,4 @@
-import _ = require("underscore");
+import _ = require("lodash");
 
 import Logger = require("../../lib/logger");
 import CandleBuilder = require("../../lib/calc/candleBuilder");

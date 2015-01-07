@@ -1,6 +1,6 @@
 import https = require("https");
 
-import _ = require("underscore");
+import _ = require("lodash");
 
 import httpx = require("../httpx");
 import Logger = require("../logger");
@@ -61,7 +61,7 @@ function decodeTimestamp(timestamp: string) {
     return new Date(parseInt(timestamp) / 1000);
 }
 
-var currencies = {
+var currencies: { [symbol: string]: number } = {
     BTC: 8,
     USD: 5,
 }

@@ -6,6 +6,7 @@ import interfaces_ = require("./interfaces");
 if (0) interfaces_;
 import SnapshotDataSource = interfaces_.SnapshotDataSource;
 import TemporalDataSource = interfaces_.TemporalDataSource;
+import PeriodicTemporalDataSource = interfaces_.PeriodicTemporalDataSource;
 import models_ = require("./models");
 if (0) models_;
 import SnapshotData = models_.SnapshotData;
@@ -136,5 +137,87 @@ export class TemporalDataStack<T> extends TemporalDataSource<T> {
 
 export interface TemporalDataStackSourceInfo<T> {
     source: TemporalDataSource<T>;
+    role: string;
+}
+
+
+export class PeriodicTemporalDataStack<T> extends PeriodicTemporalDataSource<T> {
+    private infos: PeriodicTemporalDataStackSourceInfo<T>[] = [];
+
+    constructor(format: TemporalDataFormat<T>) {
+        super();
+        this.format = format;
+    }
+
+    public addSource(info: PeriodicTemporalDataStackSourceInfo<T>) {
+        this.infos.push(info);
+        info.source.gotData.attach(this.gotData.emit.bind(this.gotData));
+    }
+
+    public wantRealtime() {
+        _.each(this.infos, info => {
+            info.source.wantRealtime();
+        });
+    }
+
+    public unwantRealtime() {
+        _.each(this.infos, info => {
+            info.source.unwantRealtime();
+        });
+    }
+
+    private role(role: string) {
+        return _.where(this.infos, {role: role});
+    }
+
+    private getLatestTimestampFromSources(infos: PeriodicTemporalDataStackSourceInfo<T>[], ...args: any[]) {
+        return _.reduce<PeriodicTemporalDataStackSourceInfo<T>, Date>(infos, (acc, info) => {
+            var result = info.source.getFromMemory.apply(info.source, args);
+            var candidate = result.data.length
+                ? info.source.format.extractTimestamp(result.data[result.data.length - 1])
+                : undefined;
+            return !acc ? candidate : !candidate ? acc : candidate > acc ? candidate : acc;
+        }, undefined);
+    }
+
+    private getLatestTimestampFromDataSets(sets: TemporalData<T>[], earliest: Date) {
+        return _.reduce<TemporalData<T>, Date>(sets, (acc, set) => {
+            var candidate = set.data.length ? this.format.extractTimestamp(set.data[set.data.length - 1]) : undefined;
+            return !acc ? candidate : !candidate ? acc : candidate > acc ? candidate : acc;
+        }, earliest);
+    }
+
+    public getFromMemory(earliest: Date, latest: Date, period: number) {
+        var getter = (info: PeriodicTemporalDataStackSourceInfo<T>) => {
+            return info.source.getFromMemory(earliest, latest, period);
+        };
+
+        var sets = _.map(this.role("historical"), getter);
+        var historicalLatest = this.getLatestTimestampFromDataSets(sets, earliest);
+        earliest = historicalLatest || earliest;
+        sets = sets
+            .concat(_.map(this.role("partial"), getter))
+            .concat(_.map(this.role("realtime"), getter));
+        return this.format.combineDataSets(sets);
+    }
+
+    public prefetch(earliest: Date, latest: Date, period: number) {
+        var prefetcher = (info: PeriodicTemporalDataStackSourceInfo<T>) => {
+            return info.source.prefetch(earliest, latest, period);
+        };
+
+        return Promise.settle(_.map(this.role("historical"), prefetcher)).then(() => {
+            var historicalLatest = this.getLatestTimestampFromSources(
+                _.where(this.infos, {role: "historical"}), earliest, latest);
+            earliest = historicalLatest || earliest;
+            // TODO: omit realtime from prefetch after fixing flugelhorn!
+            var theRest = this.role("partial").concat(this.role("realtime"));
+            return Promise.settle(_.map(theRest, prefetcher));
+        }).then(() => { });
+    }
+}
+
+export interface PeriodicTemporalDataStackSourceInfo<T> {
+    source: PeriodicTemporalDataSource<T>;
     role: string;
 }

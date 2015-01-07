@@ -31,7 +31,7 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
         return {edges: pair, arrays: localArrays};
     });
 
-    return _.flatten(_.map(ranges, range => {
+    return _.flatten<T>(_.map(ranges, range => {
         var slices = _.map(range.arrays, (array: T[]) => {
             var leftInclusive = sortKey(array[0]) === range.edges[0];
             var rightInclusive = sortKey(array[array.length - 1]) === range.edges[1];
@@ -42,7 +42,7 @@ export function rangeMerge<T>(arrays: T[][], sortKey: (x: T) => any, uniqueKey: 
         if (slices.length === 1)
             return slices[0];
 
-        var ret = fun.uniqViaObject(_.flatten(slices, true), uniqueKey);
+        var ret = fun.uniqViaObject(_.flatten<T>(slices, true), uniqueKey);
         ret.sort((a, b) => sortKey(a) - sortKey(b));  // ~15% speedup over _.sort
         return ret;
     }), true);

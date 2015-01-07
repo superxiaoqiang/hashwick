@@ -118,7 +118,7 @@ interface SerializedMarketExchangeKnob extends SerializedLayoutKnob {
 
 
 interface LayoutKnobType {
-    create(context: DeserializationContext, knob: SerializedLayoutKnob): void;
+    create(context: DeserializationContext, knob: SerializedLayoutKnob): JQuery;
 }
 
 var knobTypes: { [type: string]: LayoutKnobType } = {

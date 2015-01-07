@@ -1,5 +1,5 @@
 /// <reference path="../vendor/express/express.d.ts" />
-/// <reference path="../vendor/underscore/underscore.d.ts" />
+/// <reference path="../vendor/lodash/lodash.d.ts" />
 
 import http = require("http");
 

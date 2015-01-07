@@ -1,6 +1,6 @@
 import https = require("https");
 
-import _ = require("underscore");
+import _ = require("lodash");
 
 import httpx = require("../httpx");
 import Order = require("../models/order");
