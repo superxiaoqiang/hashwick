@@ -42,5 +42,5 @@ export function cleanOldDepth(db: Database, market: Market) {
         db.delete_depth_snapshots_before_timestamp(market.id, timestamp).then(result => {
             log.info(market.describe() + " - cleaned old depth, deleted " + result.rowCount + " rows");
         }).done();
-    });
+    }).done();
 }
