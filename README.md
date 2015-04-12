@@ -9,8 +9,7 @@ Webapp development command:
 
     ./node_modules/typescript/bin/tsc hashwick-webapp/app.ts --module commonjs --noImplicitAny &&
         sudo NODE_ENV=development node hashwick-server/server.js
-        
+
 Deployment command:
 
-    cd deploy &&
-        ansible-playbook -i stage deploy.yml
+    cd deploy && ./deploy.sh
