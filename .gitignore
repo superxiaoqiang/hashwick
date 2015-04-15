@@ -15,8 +15,8 @@ results
 npm-debug.log
 node_modules
 
-config.*.json
-!config.example.json
+config.*.js
+!config.example.js
 secrets.yml
 
 /out/

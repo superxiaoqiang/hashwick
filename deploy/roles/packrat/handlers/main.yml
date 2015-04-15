@@ -1,6 +1,0 @@
----
-- name: restart circus
-  service: name=circus state=restarted
-
-- name: restart packrat
-  shell: circusctl reload packrat
