@@ -30,4 +30,6 @@ if (config.devMode) {
 
 app.get("/", controllers.index);
 
+app.get('/favicon.ico', (req, res) => { res.sendfile(__dirname + '/static/favicon.ico'); });
+
 http.createServer(app).listen(config.httpPort);

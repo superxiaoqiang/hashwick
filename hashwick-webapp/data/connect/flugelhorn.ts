@@ -48,7 +48,7 @@ class Socketeer {
         this.socket.ontimeout = this.onTimeout.bind(this);
         this.socket.onmessage = this.onMessage.bind(this);
         this.log = new Logger("data.connect.flugelhorn.socketeer");
-        statusIcon = frame.addFooterIcon("Flugelhorn", "/static/icons/flugelhorn.ico");
+        statusIcon = frame.addFooterIcon("Flugelhorn", "/favicon.ico");
     }
 
     private disconnect() {
