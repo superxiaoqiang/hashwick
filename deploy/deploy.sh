@@ -4,23 +4,23 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+REMOTE="$1"
+
 grunt build-webapp
 
-website_host=js-hashwick
+ssh "$REMOTE" 'mkdir -p ~/hashwick'
+rsync -r ../deploy "$REMOTE":~/hashwick/
 
-ssh root@$website_host 'mkdir -p ~/hashwick'
-rsync -r ../deploy root@$website_host:~/hashwick/
+ssh "$REMOTE" 'mkdir -p ~/hashwick/deploy/hashwick-packrat/build'
+rsync -r ../{lib,package.json,packrat} "$REMOTE":~/hashwick/deploy/hashwick-packrat/build/
 
-ssh root@$website_host 'mkdir -p ~/hashwick/deploy/hashwick-packrat/build'
-rsync -r ../{lib,package.json,packrat} root@$website_host:~/hashwick/deploy/hashwick-packrat/build/
+ssh "$REMOTE" 'mkdir -p ~/hashwick/deploy/hashwick-appserver/build'
+rsync -r ../{lib,package.json,out/hashwick-server} "$REMOTE":~/hashwick/deploy/hashwick-appserver/build/
 
-ssh root@$website_host 'mkdir -p ~/hashwick/deploy/hashwick-appserver/build'
-rsync -r ../{lib,package.json,out/hashwick-server} root@$website_host:~/hashwick/deploy/hashwick-appserver/build/
+ssh "$REMOTE" 'mkdir -p ~/hashwick/deploy/hashwick-nginx/build'
+rsync -r ../out/hashwick-server "$REMOTE":~/hashwick/deploy/hashwick-nginx/build/
 
-ssh root@$website_host 'mkdir -p ~/hashwick/deploy/hashwick-nginx/build'
-rsync -r ../out/hashwick-server root@$website_host:~/hashwick/deploy/hashwick-nginx/build/
-
-ssh root@$website_host <<\EOSH
+ssh "$REMOTE" <<\EOSH
     set -o errexit
     set -o nounset
     set -o pipefail
